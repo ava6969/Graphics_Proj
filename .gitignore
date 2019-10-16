@@ -7,10 +7,23 @@
 *.o
 *.obj
 
+
+*.sln
+*.vcxproj.*
+*.vcxproj
+*.config
+
 # Precompiled Headers
 *.gch
 *.pch
 
+*/packages/
+*/.vs/
+
+*/x64/Debug/*
+*/x64/Release/*
+!/x64/Debug/Assets/*
+!/x64/Debug/Assets/*.obj
 # Compiled Dynamic libraries
 *.so
 *.dylib
