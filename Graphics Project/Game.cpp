@@ -63,18 +63,23 @@ Game::~Game()
     // will clean up their own internal DirectX stuff
     delete vertexShader;
     delete pixelShader;
+    for (int i = 0; i < meshCount; i++) {
+        delete meshes[i];
+    }
 
+    delete[] meshes;
     if (meshes != 0) {
-        for (int i = 0; i < meshCount; i++) {
-            delete meshes[i];
-        }
-
-        delete[] meshes;
+       
     }
     for (int i = 0; i < materials.size(); i++) {
         delete materials[i];
     }
+ 
+    tileSRV->Release();
+    leatherSRV->Release();
+    sampleState->Release();
 
+    metalSRV->Release();
 
 }
 

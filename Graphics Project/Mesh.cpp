@@ -192,13 +192,14 @@ Mesh::~Mesh()
 {
 
     if (m_vertexBuffer != NULL) {
-        m_vertexBuffer->Release();
+       
     }
     if (m_indexBuffer != NULL) {
 
-        m_indexBuffer->Release();
+        
     }
-
+    m_vertexBuffer->Release();
+    m_indexBuffer->Release();
 }
 
 ID3D11Buffer* Mesh::GetVertexBuffer()
