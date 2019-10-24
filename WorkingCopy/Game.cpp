@@ -252,10 +252,10 @@ void Game::CreateBasicGeometry()
 
 	Vertex vertices[] =
 	{
-		{ XMFLOAT3(+5.0f, -2.0f, -5.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
-		{ XMFLOAT3(+5.0f, -2.0f, +5.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,1) },
-		{ XMFLOAT3(-5.0f, -2.0f, +5.0f), XMFLOAT3(0,1,0), XMFLOAT2(1,1) },
-		{ XMFLOAT3(-5.0f, -2.0f, -5.0f), XMFLOAT3(0,1,0), XMFLOAT2(1,0) }
+		{ XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
+		{ XMFLOAT3(+50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,10) },
+		{ XMFLOAT3(-50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,10) },
+		{ XMFLOAT3(-50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,0) }
 	};
 
 	unsigned int indices[] = { 2,1,0,2,0,3 };
@@ -264,7 +264,7 @@ void Game::CreateBasicGeometry()
 	meshes.push_back(mesh2);
 	entities.push_back(e2);
 
-	Entity* e3 = new Entity(mesh2, floor);
+	/*Entity* e3 = new Entity(mesh2, floor);
 	Entity* e4 = new Entity(mesh2, floor);
 	entities.push_back(e3);
 	entities.push_back(e4);
@@ -275,7 +275,7 @@ void Game::CreateBasicGeometry()
 	e3->SetTranslation(XMFLOAT3(0.0,3.0,3.0));
 	XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(3.14159f * 0.5f, 3.14159f * 0.5f, 0.0f));
 	e4->SetRotation(rot);
-	e4->SetTranslation(XMFLOAT3(-3.0f, 3.0f, 0.0f));
+	e4->SetTranslation(XMFLOAT3(-3.0f, 3.0f, 0.0f));*/
 }
 
 

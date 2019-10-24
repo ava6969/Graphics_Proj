@@ -11,6 +11,7 @@ Camera::Camera()
 	direction = XMFLOAT3(0, 0, 1);
 	rotX = 0;
 	rotY = 0;
+	debug = false;
 }
 
 Camera::Camera(float width, float height)
@@ -29,6 +30,7 @@ Camera::Camera(float width, float height)
 	direction = XMFLOAT3(0, 0, 1);
 	rotX = 0;
 	rotY = 0;
+	debug = false;
 }
 
 Camera::~Camera()
@@ -59,12 +61,17 @@ DirectX::XMFLOAT3 Camera::GetDirection()
 void Camera::Update(float deltaTime)
 {
 	// get user input
-	CheckForInput(1, deltaTime);
+	CheckForInput(2.5f, deltaTime);
 
 	// calculate the view quaternion
 	XMVECTOR view = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);
 	// apply to the forward
 	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0,0,1,0), view);
+	// keep the Y value on the same plane when playing
+	if (!debug)
+	{
+		position.y = 0.0f;
+	}
 	// get the resulting view matrix
 	XMMATRIX result = XMMatrixLookToLH(
 		XMLoadFloat3(&position),  // position
@@ -81,7 +88,7 @@ void Camera::CheckForInput(float sensitivity, float dt)
 	sensitivity = sensitivity * dt;
 	if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
 	{
-		sensitivity *= 5.0;
+		sensitivity *= 2.5f;
 	}
 	// forward
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -112,6 +119,11 @@ void Camera::CheckForInput(float sensitivity, float dt)
 	if (GetAsyncKeyState('X') & 0x8000)
 	{
 		XMStoreFloat3(&position, MoveUpDown(-sensitivity));
+	}
+	// toggle debug cam
+	if (GetAsyncKeyState('P') & 0x01)
+	{
+		debug = !debug;
 	}
 }
 

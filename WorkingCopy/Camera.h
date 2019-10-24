@@ -36,5 +36,7 @@ private:
 	// rotation floats
 	float rotX;
 	float rotY;
+	// debug flag
+	bool debug;
 };
 
