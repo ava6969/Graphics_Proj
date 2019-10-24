@@ -31,10 +31,13 @@ Camera::Camera(float width, float height)
 	rotX = 0;
 	rotY = 0;
 	debug = false;
+
+	collider = new Collider(0.2f);
 }
 
 Camera::~Camera()
 {
+	delete collider;
 }
 
 DirectX::XMFLOAT4X4 Camera::GetViewMatrix()
@@ -56,6 +59,11 @@ DirectX::XMFLOAT3 Camera::GetDirection()
 {
 	XMStoreFloat3(&direction, XMVector3Normalize(XMLoadFloat3(&direction)));
 	return direction;
+}
+
+Collider* Camera::GetCollider()
+{
+	return collider;
 }
 
 void Camera::Update(float deltaTime)
@@ -80,6 +88,8 @@ void Camera::Update(float deltaTime)
 	// store the values
 	XMStoreFloat3(&direction, dir);
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(result));
+
+	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
 void Camera::CheckForInput(float sensitivity, float dt)

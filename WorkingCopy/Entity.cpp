@@ -18,7 +18,7 @@ Entity::Entity()
 	isDirty = true;
 }
 
-Entity::Entity(Mesh* m, Material* mat)
+Entity::Entity(Mesh* m, Material* mat, float rad)
 {
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
@@ -36,11 +36,13 @@ Entity::Entity(Mesh* m, Material* mat)
 	isDirty = true;
 
 	material = mat;
+
+	collider = new Collider(rad);
 }
 
 Entity::~Entity()
 {
-	
+	delete collider;
 }
 
 DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
@@ -109,6 +111,8 @@ void Entity::ComputeWorldMatrix()
 	XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(world));
 
 	isDirty = false;
+
+	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
 ID3D11Buffer* Entity::GetVertexBuffer()
@@ -129,6 +133,11 @@ int Entity::GetIndexCount()
 Material* Entity::GetMaterial()
 {
 	return material;
+}
+
+Collider* Entity::GetCollider()
+{
+	return collider;
 }
 
 void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2)

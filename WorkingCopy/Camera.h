@@ -2,6 +2,7 @@
 
 #include "DXCore.h"
 #include <DirectXMath.h>
+#include "Collider.h"
 
 class Camera
 {
@@ -16,6 +17,7 @@ public:
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 	DirectX::XMFLOAT3 GetPosition();
 	DirectX::XMFLOAT3 GetDirection();
+	Collider* GetCollider();
 
 	void Update(float deltaTime);
 	void CheckForInput(float sensitivity, float dt);
@@ -38,5 +40,7 @@ private:
 	float rotY;
 	// debug flag
 	bool debug;
+	// Collider
+	Collider* collider;
 };
 

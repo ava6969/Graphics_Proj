@@ -94,9 +94,9 @@ void Game::Init()
 		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// diffuse
 		XMFLOAT3(0.0f,0.0f,-3.0f),			// position
-		45.0f,								// angle
+		30.0f,								// angle
 		XMFLOAT3(0.0f, 0.0f, 1.0f),			// direction
-		20.0f,								// length
+		30.0f,								// length
 		1.0f								// intensity
 	};
 	light2 = {
@@ -246,7 +246,7 @@ void Game::CreateBasicGeometry()
 
 	const char* filename = "Models/sphere.obj";
 	Mesh* mesh1 = new Mesh(filename, device);
-	Entity* e1 = new Entity(mesh1, defaultMaterial);
+	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
 	meshes.push_back(mesh1);
 	entities.push_back(e1);
 
@@ -260,7 +260,7 @@ void Game::CreateBasicGeometry()
 
 	unsigned int indices[] = { 2,1,0,2,0,3 };
 	Mesh* mesh2 = new Mesh(vertices, 4, indices, 6, device);
-	Entity* e2 = new Entity(mesh2, floor);
+	Entity* e2 = new Entity(mesh2, floor, 0.0f);
 	meshes.push_back(mesh2);
 	entities.push_back(e2);
 

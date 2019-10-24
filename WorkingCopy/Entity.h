@@ -6,12 +6,13 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Lights.h"
+#include "Collider.h"
 
 class Entity
 {
 public:
 	Entity();
-	Entity(Mesh* m, Material* mat);
+	Entity(Mesh* m, Material* mat, float rad);
 	~Entity();
 	
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
@@ -28,6 +29,7 @@ public:
 	ID3D11Buffer* GetIndexBuffer();
 	int GetIndexCount();
 	Material* GetMaterial();
+	Collider* GetCollider();
 	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
 private:
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -37,5 +39,6 @@ private:
 	Mesh* mesh;
 	bool isDirty;
 	Material* material;
+	Collider* collider;
 };
 
