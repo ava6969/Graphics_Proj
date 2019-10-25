@@ -24,6 +24,8 @@ public:
 	void ChangeProjection(float width, float height);
 	void Rotate(float x, float y);
 
+	void Move(DirectX::XMFLOAT3 amount);
+
 	// helpers
 	DirectX::XMVECTOR MoveForwardBackwards(float amount);
 	DirectX::XMVECTOR MoveLeftRight(float amount);

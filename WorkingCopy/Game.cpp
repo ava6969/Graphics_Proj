@@ -29,6 +29,7 @@ Game::Game(HINSTANCE hInstance)
 	prevMousePos = { 0,0 };
 	cameraCanMove = false;
 	textureSRV = 0;
+	collisionManager = new CollisionManager();
 	
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -63,7 +64,7 @@ Game::~Game()
 	delete camera;
 	delete defaultMaterial;
 	delete floor;
-
+	//delete collisionManager;
 	textureSRV->Release();
 	textureNSRV->Release();
 	floorSRV->Release();
@@ -250,6 +251,8 @@ void Game::CreateBasicGeometry()
 	meshes.push_back(mesh1);
 	entities.push_back(e1);
 
+	collisionManager->addCollider(*e1);
+
 	Vertex vertices[] =
 	{
 		{ XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
@@ -258,7 +261,9 @@ void Game::CreateBasicGeometry()
 		{ XMFLOAT3(-50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,0) }
 	};
 
+	//Floor
 	unsigned int indices[] = { 2,1,0,2,0,3 };
+	
 	Mesh* mesh2 = new Mesh(vertices, 4, indices, 6, device);
 	Entity* e2 = new Entity(mesh2, floor, 0.0f);
 	meshes.push_back(mesh2);
@@ -300,6 +305,20 @@ void Game::Update(float deltaTime, float totalTime)
 	if (GetAsyncKeyState(VK_ESCAPE))
 		Quit();
 
+
+	camera->Update(deltaTime);
+
+	float x = cos(frameCounter);
+	float z = sin(frameCounter);
+	light2.Position = XMFLOAT3(x * 3.0f, 0.0f, z * 3.0f);
+
+	dirLight.Position = camera->GetPosition();
+	dirLight.Direction = camera->GetDirection();
+
+	frameCounter = frameCounter + deltaTime;
+
+	collisionManager->checkOverlap(camera);
+
 	//float val = sin(frameCounter);
 	//entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
 	//entities[1]->SetScale(XMFLOAT3(val + 1, val + 1, val + 1));
@@ -308,16 +327,9 @@ void Game::Update(float deltaTime, float totalTime)
 		entities[i]->ComputeWorldMatrix();
 	}
 
-	float x = cos(frameCounter);
-	float z = sin(frameCounter);
-	light2.Position = XMFLOAT3(x * 3.0f, 0.0f, z * 3.0f);
+
 	
-	dirLight.Position = camera->GetPosition();
-	dirLight.Direction = camera->GetDirection();
 
-	frameCounter = frameCounter + deltaTime;
-
-	camera->Update(deltaTime);
 }
 
 // --------------------------------------------------------

@@ -156,6 +156,12 @@ void Camera::Rotate(float x, float y)
 	else if (rotX > pi / 2) rotX = pi / 2;
 }
 
+void Camera::Move(DirectX::XMFLOAT3 amount)
+{
+
+	XMStoreFloat3(&position, XMVectorAdd(XMLoadFloat3(&position), XMLoadFloat3(&amount)));
+}
+
 DirectX::XMVECTOR Camera::MoveForwardBackwards(float amount)
 {
 	// convert to vectors

@@ -8,6 +8,7 @@
 #include "Camera.h"
 #include "Material.h"
 #include "Lights.h"
+#include "CollisionManager.h"
 
 class Game 
 	: public DXCore
@@ -62,6 +63,8 @@ private:
 	// materials
 	Material* defaultMaterial;
 	Material* floor;
+
+	CollisionManager* collisionManager;
 
 	// lights
 	SpotLight dirLight;

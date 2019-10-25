@@ -16,8 +16,7 @@ public:
 	// setter
 	void SetCenter(DirectX::XMFLOAT2 c);
 
-	// detection method
-	bool CircleToCircleCollision(Collider* other);
+
 private:
 	float radius;
 	DirectX::XMFLOAT2 center;
