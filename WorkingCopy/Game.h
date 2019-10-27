@@ -37,6 +37,9 @@ private:
 	void CreateMatrices();
 	void CreateBasicGeometry();
 
+    void SpawnTreeGrid(int x, int y, int step);
+
+
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
 	SimplePixelShader* pixelShader;
@@ -53,6 +56,10 @@ private:
 	// array of meshes to load / draw
 	std::vector<Mesh*> meshes;
 	std::vector<Entity*> entities;
+
+    std::vector<Entity*> trees;
+
+
 
 	float frameCounter;
 

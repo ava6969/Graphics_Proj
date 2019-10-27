@@ -17,6 +17,10 @@ public:
 	
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 	void SetTranslation(DirectX::XMFLOAT3 tran);
+    void SetTranslation(float x, float y, float z) {
+        SetTranslation(DirectX::XMFLOAT3(x, y, z));
+
+    }
 	void SetScale(DirectX::XMFLOAT3 sc);
 	void SetRotation(DirectX::XMFLOAT4 rot);
 	void RotateAroundAxis(DirectX::XMFLOAT3 axis, float angle);

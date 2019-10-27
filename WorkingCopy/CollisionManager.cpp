@@ -86,6 +86,7 @@ void CollisionManager::HandlePlayerCollisions()
 
 	for (int i = 0; i < collidableObjects.size(); i++)
 	{
+
 		if (CircleToCircleCollision(player->GetCollider(), collidableObjects[i]))
 		{
 			ResolvePlayerCollision(collidableObjects[i]);
@@ -133,12 +134,22 @@ void CollisionManager::ResolvePlayerCollision(Collider* other)
 	XMVECTOR myCenter = XMLoadFloat2(&player->GetCollider()->GetCenter());
 	XMVECTOR theirCenter = XMLoadFloat2(&other->GetCenter());
 	// get normalized direction between them
+    
 	XMVECTOR result = XMVector2Normalize(myCenter - theirCenter);
-	// scale by sum of radii
-	result *= (player->GetCollider()->GetRadius() + other->GetRadius());
+	
+    // scale by overlap ammount
+    XMVECTOR distSqr = XMVector2Length(myCenter - theirCenter);
+    XMFLOAT2 dist;
+    XMStoreFloat2(&dist, distSqr);
+
+    float rad = (player->GetCollider()->GetRadius() + other->GetRadius());
+   
+    rad = rad - dist.x;
+    result *= rad;
 	// unpack result
 	XMFLOAT2 unpackedResult;
 	XMStoreFloat2(&unpackedResult, result);
 	// move camera
-	player->SetPosition(XMFLOAT3(unpackedResult.x, 0.0, unpackedResult.y));
+
+	player->Move(XMFLOAT3(unpackedResult.x, 0.0, unpackedResult.y));
 }
