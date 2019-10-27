@@ -9,7 +9,7 @@ Material::Material()
 	samplerOptions = 0;
 }
 
-Material::Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11ShaderResourceView* tex, ID3D11ShaderResourceView* norm, ID3D11SamplerState* opt, float shine)
+Material::Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11ShaderResourceView* tex, ID3D11ShaderResourceView* norm, ID3D11ShaderResourceView* rough, ID3D11ShaderResourceView* metal, ID3D11SamplerState* opt, float shine)
 {
 	vertexShader = vertex;
 	pixelShader = pixel;
@@ -17,6 +17,8 @@ Material::Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11S
 	normalMap = norm;
 	samplerOptions = opt;
 	shininess = shine;
+	roughness = rough;
+	metalness = metal;
 }
 
 Material::~Material()
@@ -41,6 +43,16 @@ ID3D11ShaderResourceView* Material::GetTexture()
 ID3D11ShaderResourceView* Material::GetNormalMap()
 {
 	return normalMap;
+}
+
+ID3D11ShaderResourceView* Material::GetRoughness()
+{
+	return roughness;
+}
+
+ID3D11ShaderResourceView* Material::GetMetalness()
+{
+	return metalness;
 }
 
 ID3D11SamplerState* Material::GetSampler()

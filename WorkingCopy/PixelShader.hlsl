@@ -49,13 +49,15 @@ struct SpotLight
 cbuffer lightData : register(b1)
 {
 	SpotLight light;
-	PointLight light2;
+	DirectionalLight light2;
 	float3 cameraPos;
 	float shininess;
 };
 
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			: register(t1);
+Texture2D roughnessMap		: register(t2);
+Texture2D metalnessMap		: register(t3);
 SamplerState basicSampler	: register(s0);
 
 float4 calculateDLight(DirectionalLight l, float3 norm, float shine, float3 toCam, float4 tex)
@@ -117,6 +119,71 @@ float4 calculateSLight(SpotLight l, float3 norm, float3 pos, float3 shine, float
 	return ((l.AmbientColor * tex + l.DiffuseColor * tex) * NdotL + spec) * att * spotAmount * l.Intensity;
 }
 
+float SpecDistribution(float3 n, float3 h, float roughness)
+{
+	// pre-calculations
+	float NdotH = saturate(dot(n, h));
+	float NdotH2 = NdotH * NdotH;
+	float a = roughness * roughness;
+	// remap
+	float a2 = max(a * a, 0.2f);
+
+	float denomToSquare = NdotH2 * (a2 - 1) + 1;
+
+	// final value
+	return a2 / (3.14159265f * denomToSquare * denomToSquare);
+}
+
+float3 Fresnel(float3 v, float3 h, float3 f0)
+{
+	// pre-calculations
+	float VdotH = saturate(dot(v, h));
+
+	// final value - Shlick
+	return f0 + (1 - f0) * pow(1 - VdotH, 5);
+}
+
+float GeometricShadowing(float3 n, float3 v, float3 h, float roughness)
+{
+	// end result of remapping
+	float k = pow(roughness + 1, 2) / 8.0f;
+	float NdotV = saturate(dot(n, v));
+
+	// final value
+	return NdotV / (NdotV * (1 - k) + k);
+}
+
+// n = surface normal
+// l = toLight
+// v = toCamera
+// h = half angle (v + l / 2)
+float3 microfacetBRDF(float3 n, float3 l, float3 v, float3 h, float roughness, float3 specColor)
+{
+	float D = SpecDistribution(n, h, roughness);
+	float3 F = Fresnel(v, h, specColor);
+	float G = GeometricShadowing(n, v, h, roughness) * GeometricShadowing(n, l, h, roughness);
+
+	return (D * F * G) / (4 * max(dot(n, v), dot(n,l)));
+}
+
+float diffuseBRDF(float3 n, float3 l)
+{
+	return saturate(dot(n, l));
+}
+
+float3 diffuseEnergyConserve(float diffuse, float3 specular, float metalness)
+{
+	return diffuse * ((1 - saturate(specular)) * (1 - metalness));
+}
+
+float4 calculatePBR(float3 n, float3 l, float3 v, float3 h, float roughness, float metalness, float3 specColor, float3 tex, float3 lightA, float3 lightD)
+{
+	float diffuse = diffuseBRDF(n, l);
+	float3 specular = microfacetBRDF(n, l, v, h, roughness, specColor);
+	float3 diffuseAdjusted = diffuseEnergyConserve(diffuse, specular, metalness);
+	return float4((lightA * tex) + diffuse * tex * lightD + specular, 1);
+}
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -131,6 +198,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// sample the texture
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	float4 mapColor = normalMap.Sample(basicSampler, input.uv);
+	float4 roughness = roughnessMap.Sample(basicSampler, input.uv);
+	float4 metalness = metalnessMap.Sample(basicSampler, input.uv);
 
 	// normalize normals
 	input.normal = normalize(input.normal);
@@ -148,10 +217,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(mul(normalFromMap, TBN));
 
 	// set up values to use for lighting
-	float3 toCamera = normalize(cameraPos - input.worldPos);
-
-	float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	//float4 light2Color = calculatePLight(light2, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	return light1Color; //+ light2Color;
+	float3 v = normalize(cameraPos - input.worldPos);
+	float3 l = normalize(-light2.Direction);
+	float3 h = v + l / 2;
+	//float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
+	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, float3(0.955008f, 0.637427f, 0.538163f), surfaceColor.rgb, light2.AmbientColor, light2.DiffuseColor);
+	return /*light1Color; //+*/ light2Color;
 }
 

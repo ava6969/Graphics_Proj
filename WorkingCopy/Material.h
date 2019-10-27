@@ -9,7 +9,7 @@ class Material
 public:
 	// constructors / destructor
 	Material();
-	Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11ShaderResourceView* tex, ID3D11ShaderResourceView* norm, ID3D11SamplerState* opt, float shine);
+	Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11ShaderResourceView* tex, ID3D11ShaderResourceView* norm, ID3D11ShaderResourceView* rough, ID3D11ShaderResourceView* metal, ID3D11SamplerState* opt, float shine);
 	~Material();
 
 	// getters
@@ -17,6 +17,8 @@ public:
 	SimplePixelShader* GetPixelShader();
 	ID3D11ShaderResourceView* GetTexture();
 	ID3D11ShaderResourceView* GetNormalMap();
+	ID3D11ShaderResourceView* GetRoughness();
+	ID3D11ShaderResourceView* GetMetalness();
 	ID3D11SamplerState* GetSampler();
 	float GetShininess();
 private:
@@ -26,6 +28,8 @@ private:
 
 	ID3D11ShaderResourceView* texture;
 	ID3D11ShaderResourceView* normalMap;
+	ID3D11ShaderResourceView* roughness;
+	ID3D11ShaderResourceView* metalness;
 	ID3D11SamplerState* samplerOptions;
 
 	float shininess;

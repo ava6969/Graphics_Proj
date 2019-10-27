@@ -67,12 +67,14 @@ private:
 	CollisionManager* collisionManager;
 
 	// lights
-	SpotLight dirLight;
-	PointLight light2;
+	SpotLight flashlight;
+	DirectionalLight light2;
 
 	// textures
 	ID3D11ShaderResourceView* textureSRV;
 	ID3D11ShaderResourceView* textureNSRV;
+	ID3D11ShaderResourceView* copperRough;
+	ID3D11ShaderResourceView* copperMetallic;
 	ID3D11ShaderResourceView* floorSRV;
 	ID3D11ShaderResourceView* floorNSRV;
 	ID3D11SamplerState* samplerOptions;

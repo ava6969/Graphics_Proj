@@ -63,12 +63,14 @@ Game::~Game()
 
 	delete camera;
 	delete defaultMaterial;
-	delete floor;
+	//delete floor;
 	//delete collisionManager;
 	textureSRV->Release();
 	textureNSRV->Release();
 	floorSRV->Release();
 	floorNSRV->Release();
+	copperMetallic->Release();
+	copperRough->Release();
 	samplerOptions->Release();
 }
 
@@ -91,7 +93,7 @@ void Game::Init()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// set up the scene light
-	dirLight = {
+	flashlight  = {
 		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
 		XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// diffuse
 		XMFLOAT3(0.0f,0.0f,-3.0f),			// position
@@ -101,11 +103,10 @@ void Game::Init()
 		1.0f								// intensity
 	};
 	light2 = {
-		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
-		XMFLOAT4(0.8f, 0.0f, 0.0f, 1.0f),		// color
-		XMFLOAT3(3.0f, 0.0f, 0.0f),			// position
-		5.0f,								// radius
-		1.0f								// intensity
+		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),
+		XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
+		XMFLOAT3(1.0f,-1.0f,1.0f),
+		1.0f
 	};
 }
 
@@ -137,7 +138,7 @@ void Game::LoadShaders()
 	CreateWICTextureFromFile(
 		device,
 		context,
-		L"Textures/Rock.tif",
+		L"Textures/Copper.tif",
 		//L"Textures/Brick.tif",
 		0,
 		&textureSRV
@@ -145,18 +146,19 @@ void Game::LoadShaders()
 	CreateWICTextureFromFile(
 		device,
 		context,
-		L"Textures/RockN.tif",
+		L"Textures/CopperN.tif",
 		//L"Textures/BrickN.tif",
 		0,
 		&textureNSRV);
-
+	CreateWICTextureFromFile(device, context, L"Textures/CopperR.tif", 0, &copperRough);
+	CreateWICTextureFromFile(device, context, L"Textures/CopperM.tif", 0, &copperMetallic);
 	CreateWICTextureFromFile(device, context,L"Textures/Brick.tif",0,&floorSRV);
 	CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
 
 
 	// make the material
-	defaultMaterial = new Material(vertexShader, pixelShader, textureSRV, textureNSRV, samplerOptions, 256.0);
-	floor = new Material(vertexShader, pixelShader, floorSRV, floorNSRV, samplerOptions, 256.0);
+	defaultMaterial = new Material(vertexShader, pixelShader, textureSRV, textureNSRV, copperRough, copperMetallic, samplerOptions, 256.0);
+	//floor = new Material(vertexShader, pixelShader, floorSRV, floorNSRV, samplerOptions, 256.0);
 }
 
 
@@ -209,42 +211,6 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	/*XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-
-	// Set up the vertices of the triangle we would like to draw
-	// - We're going to copy this array, exactly as it exists in memory
-	//    over to a DirectX-controlled data structure (the vertex buffer)
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-		{ XMFLOAT3(+1.0f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-		{ XMFLOAT3(-1.0f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-	};
-	
-	// Set up the indices, which tell us which vertices to use and in which order
-	// - This is somewhat redundant for just 3 vertices (it's a simple example)
-	// - Indices are technically not required if the vertices are in the buffer 
-	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	unsigned int indices[] = { 0, 1, 2 };
-	// make the mesh
-	Mesh* mesh1 = new Mesh(vertices, 3, indices, 3, device);
-
-	meshes.push_back(mesh1);
-
-	Entity* e1 = new Entity(mesh1, defaultMaterial);
-	Entity* e2 = new Entity(mesh1, defaultMaterial);
-	Entity* e3 = new Entity(mesh1, defaultMaterial);
-	e2->SetTranslation(XMFLOAT3(+2.0, -1.0, 0));
-	e3->SetTranslation(XMFLOAT3(-2.0, -1.0, 0));
-	entities.push_back(e1);
-	entities.push_back(e2);
-	entities.push_back(e3);*/
-
 	const char* filename = "Models/sphere.obj";
 	Mesh* mesh1 = new Mesh(filename, device);
 	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
@@ -253,7 +219,7 @@ void Game::CreateBasicGeometry()
 
 	collisionManager->addCollider(e1->GetCollider());
 
-	Vertex vertices[] =
+	/*Vertex vertices[] =
 	{
 		{ XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
 		{ XMFLOAT3(+50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,10) },
@@ -267,20 +233,7 @@ void Game::CreateBasicGeometry()
 	Mesh* mesh2 = new Mesh(vertices, 4, indices, 6, device);
 	Entity* e2 = new Entity(mesh2, floor, 0.0f);
 	meshes.push_back(mesh2);
-	entities.push_back(e2);
-
-	/*Entity* e3 = new Entity(mesh2, floor);
-	Entity* e4 = new Entity(mesh2, floor);
-	entities.push_back(e3);
-	entities.push_back(e4);
-
-	XMFLOAT4 rot;
-	XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(-3.14159f * 0.5f, 0.0f, 0.0f));
-	e3->SetRotation(rot);
-	e3->SetTranslation(XMFLOAT3(0.0,3.0,3.0));
-	XMStoreFloat4(&rot, XMQuaternionRotationRollPitchYaw(3.14159f * 0.5f, 3.14159f * 0.5f, 0.0f));
-	e4->SetRotation(rot);
-	e4->SetTranslation(XMFLOAT3(-3.0f, 3.0f, 0.0f));*/
+	entities.push_back(e2);*/
 }
 
 
@@ -308,12 +261,8 @@ void Game::Update(float deltaTime, float totalTime)
 
 	camera->Update(deltaTime);
 
-	float x = cos(frameCounter);
-	float z = sin(frameCounter);
-	light2.Position = XMFLOAT3(x * 3.0f, 0.0f, z * 3.0f);
-
-	dirLight.Position = camera->GetPosition();
-	dirLight.Direction = camera->GetDirection();
+	flashlight.Position = camera->GetPosition();
+	flashlight.Direction = camera->GetDirection();
 
 	frameCounter = frameCounter + deltaTime;
 
@@ -322,7 +271,7 @@ void Game::Update(float deltaTime, float totalTime)
 	//float val = sin(frameCounter);
 	//entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
 	//entities[1]->SetScale(XMFLOAT3(val + 1, val + 1, val + 1));
-	entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
+	//entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
 	for (int i = 0; i < entities.size(); i++) {
 		entities[i]->ComputeWorldMatrix();
 	}
@@ -351,7 +300,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (int i = 0; i < entities.size(); i++) {
 		// prepare the material by setting the matrices and shaders
 		entities[i]->GetMaterial()->GetPixelShader()->SetFloat3("cameraPos", camera->GetPosition());
-		entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &dirLight, &light2);
+		entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &flashlight , &light2);
 		
 		// Set buffers in the input assembler
 		//  - Do this ONCE PER OBJECT you're drawing, since each object might
