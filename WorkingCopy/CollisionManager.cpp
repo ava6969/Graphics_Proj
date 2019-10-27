@@ -5,6 +5,15 @@ CollisionManager::CollisionManager()
 
 }
 
+CollisionManager::CollisionManager(Camera* cam)
+{
+	player = cam;
+}
+
+CollisionManager::~CollisionManager()
+{
+}
+
 bool CollisionManager::checkOverlap(Entity ent)
 {
 	Collider* entCol = ent.GetCollider();
@@ -71,13 +80,42 @@ Collider* CollisionManager::checkOverlap(Collider* col, float* radSum, float* di
 	return NULL;
 }
 
+void CollisionManager::HandlePlayerCollisions()
+{
+	if (player->GetDebug()) return;
+
+	for (int i = 0; i < collidableObjects.size(); i++)
+	{
+		if (CircleToCircleCollision(player->GetCollider(), collidableObjects[i]))
+		{
+			ResolvePlayerCollision(collidableObjects[i]);
+		}
+	}
+}
+
+bool CollisionManager::CircleToCircleCollision(Collider* col1, Collider* col2)
+{
+	// load centers
+	XMVECTOR myCenter = XMLoadFloat2(&col1->GetCenter());
+	XMVECTOR theirCenter = XMLoadFloat2(&col2->GetCenter());
+	// get square distance between
+	XMVECTOR vLength = XMVector2LengthSq(myCenter - theirCenter);
+	// unpack result
+	XMFLOAT2 result;
+	XMStoreFloat2(&result, vLength);
+	// if the distance sqared is less than the sum of the radii squared, there is a collision
+	float rad = col1->GetRadius() + col2->GetRadius();
+	rad *= rad;
+	return result.x < rad;
+}
+
 bool CollisionManager::CircleToCircleCollision(Collider* col1, Collider* col2, float * radSum, float* distSqr)
 {
 	// load centers
 	XMVECTOR myCenter = XMLoadFloat2(&col1->GetCenter());
-		XMVECTOR theirCenter = XMLoadFloat2(&col2->GetCenter());
-		// get square distance between
-		XMVECTOR vLength = XMVector2LengthSq(myCenter - theirCenter);
+	XMVECTOR theirCenter = XMLoadFloat2(&col2->GetCenter());
+	// get square distance between
+	XMVECTOR vLength = XMVector2LengthSq(myCenter - theirCenter);
 	// unpack result
 	XMFLOAT2 result;
 	XMStoreFloat2(&result, vLength);
@@ -87,4 +125,20 @@ bool CollisionManager::CircleToCircleCollision(Collider* col1, Collider* col2, f
 	rad *= rad;
 	*distSqr = result.x;
 	return result.x < rad;
+}
+
+void CollisionManager::ResolvePlayerCollision(Collider* other)
+{
+	// load centers
+	XMVECTOR myCenter = XMLoadFloat2(&player->GetCollider()->GetCenter());
+	XMVECTOR theirCenter = XMLoadFloat2(&other->GetCenter());
+	// get normalized direction between them
+	XMVECTOR result = XMVector2Normalize(myCenter - theirCenter);
+	// scale by sum of radii
+	result *= (player->GetCollider()->GetRadius() + other->GetRadius());
+	// unpack result
+	XMFLOAT2 unpackedResult;
+	XMStoreFloat2(&unpackedResult, result);
+	// move camera
+	player->SetPosition(XMFLOAT3(unpackedResult.x, 0.0, unpackedResult.y));
 }

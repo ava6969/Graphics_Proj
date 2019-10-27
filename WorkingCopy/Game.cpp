@@ -29,7 +29,6 @@ Game::Game(HINSTANCE hInstance)
 	prevMousePos = { 0,0 };
 	cameraCanMove = false;
 	textureSRV = 0;
-	collisionManager = new CollisionManager();
 	
 #if defined(DEBUG) || defined(_DEBUG)
 	// Do we want a console window?  Probably only in debug mode
@@ -37,6 +36,7 @@ Game::Game(HINSTANCE hInstance)
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
 	camera = new Camera((float)width, (float)height);
+	collisionManager = new CollisionManager(camera);
 }
 
 // --------------------------------------------------------
@@ -251,7 +251,7 @@ void Game::CreateBasicGeometry()
 	meshes.push_back(mesh1);
 	entities.push_back(e1);
 
-	collisionManager->addCollider(*e1);
+	collisionManager->addCollider(e1->GetCollider());
 
 	Vertex vertices[] =
 	{
@@ -317,7 +317,7 @@ void Game::Update(float deltaTime, float totalTime)
 
 	frameCounter = frameCounter + deltaTime;
 
-	collisionManager->checkOverlap(camera);
+	collisionManager->HandlePlayerCollisions();
 
 	//float val = sin(frameCounter);
 	//entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
@@ -326,10 +326,6 @@ void Game::Update(float deltaTime, float totalTime)
 	for (int i = 0; i < entities.size(); i++) {
 		entities[i]->ComputeWorldMatrix();
 	}
-
-
-	
-
 }
 
 // --------------------------------------------------------

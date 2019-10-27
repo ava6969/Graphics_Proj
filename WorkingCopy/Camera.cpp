@@ -55,6 +55,13 @@ DirectX::XMFLOAT3 Camera::GetPosition()
 	return position;
 }
 
+void Camera::SetPosition(XMFLOAT3 pos)
+{
+	position = pos;
+}
+
+
+
 DirectX::XMFLOAT3 Camera::GetDirection()
 {
 	XMStoreFloat3(&direction, XMVector3Normalize(XMLoadFloat3(&direction)));
@@ -64,6 +71,11 @@ DirectX::XMFLOAT3 Camera::GetDirection()
 Collider* Camera::GetCollider()
 {
 	return collider;
+}
+
+bool Camera::GetDebug()
+{
+	return debug;
 }
 
 void Camera::Update(float deltaTime)
@@ -158,7 +170,6 @@ void Camera::Rotate(float x, float y)
 
 void Camera::Move(DirectX::XMFLOAT3 amount)
 {
-
 	XMStoreFloat3(&position, XMVectorAdd(XMLoadFloat3(&position), XMLoadFloat3(&amount)));
 }
 

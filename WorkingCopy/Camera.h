@@ -16,8 +16,10 @@ public:
 	DirectX::XMFLOAT4X4 GetViewMatrix();
 	DirectX::XMFLOAT4X4 GetProjectionMatrix();
 	DirectX::XMFLOAT3 GetPosition();
+	void SetPosition(DirectX::XMFLOAT3 pos);
 	DirectX::XMFLOAT3 GetDirection();
 	Collider* GetCollider();
+	bool GetDebug();
 
 	void Update(float deltaTime);
 	void CheckForInput(float sensitivity, float dt);
