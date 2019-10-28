@@ -126,7 +126,7 @@ float SpecDistribution(float3 n, float3 h, float roughness)
 	float NdotH2 = NdotH * NdotH;
 	float a = roughness * roughness;
 	// remap
-	float a2 = max(a * a, 0.2f);
+	float a2 = max(a * a, 0.000001f);
 
 	float denomToSquare = NdotH2 * (a2 - 1) + 1;
 
@@ -181,7 +181,7 @@ float4 calculatePBR(float3 n, float3 l, float3 v, float3 h, float roughness, flo
 	float diffuse = diffuseBRDF(n, l);
 	float3 specular = microfacetBRDF(n, l, v, h, roughness, specColor);
 	float3 diffuseAdjusted = diffuseEnergyConserve(diffuse, specular, metalness);
-	return float4((lightA * tex) + diffuse * tex * lightD + specular, 1);
+	return float4((lightA * tex) + diffuseAdjusted * tex * lightD + specular, 1);
 }
 
 // --------------------------------------------------------
@@ -200,7 +200,6 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 mapColor = normalMap.Sample(basicSampler, input.uv);
 	float4 roughness = roughnessMap.Sample(basicSampler, input.uv);
 	float4 metalness = metalnessMap.Sample(basicSampler, input.uv);
-
 	// normalize normals
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);
@@ -219,7 +218,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// set up values to use for lighting
 	float3 v = normalize(cameraPos - input.worldPos);
 	float3 l = normalize(-light2.Direction);
-	float3 h = v + l / 2;
+	float3 h = normalize((v + l) / 2);
+
 	//float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
 	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, float3(0.955008f, 0.637427f, 0.538163f), surfaceColor.rgb, light2.AmbientColor, light2.DiffuseColor);
 	return /*light1Color; //+*/ light2Color;
