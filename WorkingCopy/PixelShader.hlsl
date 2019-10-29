@@ -52,6 +52,7 @@ cbuffer lightData : register(b1)
 	DirectionalLight light2;
 	float3 cameraPos;
 	float shininess;
+	float3 specularColor;
 };
 
 Texture2D diffuseTexture	: register(t0);
@@ -219,9 +220,9 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float3 v = normalize(cameraPos - input.worldPos);
 	float3 l = normalize(-light2.Direction);
 	float3 h = normalize((v + l) / 2);
-
+	//float3 h = (v + l) / 2;
 	//float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, float3(0.955008f, 0.637427f, 0.538163f), surfaceColor.rgb, light2.AmbientColor, light2.DiffuseColor);
+	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light2.AmbientColor, light2.DiffuseColor);
 	return /*light1Color; //+*/ light2Color;
 }
 

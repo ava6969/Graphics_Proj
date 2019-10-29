@@ -63,15 +63,20 @@ Game::~Game()
 
 	delete camera;
 	delete defaultMaterial;
-	//delete floor;
-	//delete collisionManager;
-	textureSRV->Release();
-	textureNSRV->Release();
+	delete floor;
+	delete paint;
+	delete collisionManager;
+	//textureSRV->Release();
+	//textureNSRV->Release();
 	floorSRV->Release();
 	floorNSRV->Release();
-	copperMetallic->Release();
+	/*copperMetallic->Release();
 	copperRough->Release();
 	samplerOptions->Release();
+	paintAlbedo->Release();
+	paintNormal->Release();
+	paintRough->Release();
+	paintMetallic->Release();*/
 }
 
 // --------------------------------------------------------
@@ -134,6 +139,8 @@ void Game::LoadShaders()
 
 	device->CreateSamplerState(&sampDesc, &samplerOptions);
 
+	defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
+	paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.1f,0.1f,0.1f));
 	// load the textures and bump maps
 	CreateWICTextureFromFile(
 		device,
@@ -141,7 +148,7 @@ void Game::LoadShaders()
 		L"Textures/Copper.tif",
 		//L"Textures/Brick.tif",
 		0,
-		&textureSRV
+		&defaultMaterial->texture
 	);
 	CreateWICTextureFromFile(
 		device,
@@ -149,16 +156,15 @@ void Game::LoadShaders()
 		L"Textures/CopperN.tif",
 		//L"Textures/BrickN.tif",
 		0,
-		&textureNSRV);
-	CreateWICTextureFromFile(device, context, L"Textures/CopperR.tif", 0, &copperRough);
-	CreateWICTextureFromFile(device, context, L"Textures/CopperM.tif", 0, &copperMetallic);
+		&defaultMaterial->normalMap);
+	CreateWICTextureFromFile(device, context, L"Textures/CopperR.tif", 0, &defaultMaterial->roughness);
+	CreateWICTextureFromFile(device, context, L"Textures/CopperM.tif", 0, &defaultMaterial->metalness);
 	CreateWICTextureFromFile(device, context,L"Textures/Brick.tif",0,&floorSRV);
 	CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
-
-
-	// make the material
-	defaultMaterial = new Material(vertexShader, pixelShader, textureSRV, textureNSRV, copperRough, copperMetallic, samplerOptions, 256.0);
-	//floor = new Material(vertexShader, pixelShader, floorSRV, floorNSRV, samplerOptions, 256.0);
+	CreateWICTextureFromFile(device, context, L"Textures/Paint.tif", 0, &paint->texture);
+	CreateWICTextureFromFile(device, context, L"Textures/PaintN.tif", 0, &paint->normalMap);
+	CreateWICTextureFromFile(device, context, L"Textures/PaintR.tif", 0, &paint->roughness);
+	CreateWICTextureFromFile(device, context, L"Textures/PaintM.tif", 0, &paint->metalness);
 }
 
 
@@ -216,8 +222,11 @@ void Game::CreateBasicGeometry()
 	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
 	meshes.push_back(mesh1);
 	entities.push_back(e1);
+	Entity* e2 = new Entity(mesh1, paint, 1.0f);
+	entities.push_back(e2);
+	e2->SetTranslation(XMFLOAT3(1.0f, 0.0f, 0.0f));
 
-	collisionManager->addCollider(e1->GetCollider());
+	//collisionManager->addCollider(e1->GetCollider());
 
 	/*Vertex vertices[] =
 	{

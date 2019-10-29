@@ -153,6 +153,7 @@ void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj,
 	material->GetPixelShader()->SetData("light", light, sizeof(SpotLight));
 	material->GetPixelShader()->SetData("light2", light2, sizeof(DirectionalLight));
 	material->GetPixelShader()->SetFloat("shininess", material->GetShininess());
+	material->GetPixelShader()->SetFloat3("specularColor", material->GetSpecularColor());
 	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture());
 	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap());
 	material->GetPixelShader()->SetShaderResourceView("roughnessMap", material->GetRoughness());
