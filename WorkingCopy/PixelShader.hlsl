@@ -164,7 +164,7 @@ float3 microfacetBRDF(float3 n, float3 l, float3 v, float3 h, float roughness, f
 	float3 F = Fresnel(v, h, specColor);
 	float G = GeometricShadowing(n, v, h, roughness) * GeometricShadowing(n, l, h, roughness);
 
-	return (D * F * G) / (4 * max(dot(n, v), dot(n,l)));
+	return (D * F * G) / (4.0f * max(dot(n, v), dot(n,l)));
 }
 
 float diffuseBRDF(float3 n, float3 l)
@@ -219,10 +219,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// set up values to use for lighting
 	float3 v = normalize(cameraPos - input.worldPos);
 	float3 l = normalize(-light2.Direction);
-	float3 h = normalize((v + l) / 2);
+	float3 h = normalize((v + l) / 2.0f);
 	//float3 h = (v + l) / 2;
 	//float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light2.AmbientColor, light2.DiffuseColor);
+	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light2.AmbientColor.rgb, light2.DiffuseColor.rgb);
 	return /*light1Color; //+*/ light2Color;
 }
 

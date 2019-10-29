@@ -64,6 +64,7 @@ private:
 	Material* defaultMaterial;
 	Material* floor;
 	Material* paint;
+	Material* brick;
 
 	CollisionManager* collisionManager;
 

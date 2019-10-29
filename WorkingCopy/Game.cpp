@@ -65,6 +65,7 @@ Game::~Game()
 	delete defaultMaterial;
 	delete floor;
 	delete paint;
+	delete brick;
 	delete collisionManager;
 	//textureSRV->Release();
 	//textureNSRV->Release();
@@ -141,6 +142,7 @@ void Game::LoadShaders()
 
 	defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
 	paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.1f,0.1f,0.1f));
+	brick = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.04f, 0.04f, 0.04f));
 	// load the textures and bump maps
 	CreateWICTextureFromFile(
 		device,
@@ -165,6 +167,10 @@ void Game::LoadShaders()
 	CreateWICTextureFromFile(device, context, L"Textures/PaintN.tif", 0, &paint->normalMap);
 	CreateWICTextureFromFile(device, context, L"Textures/PaintR.tif", 0, &paint->roughness);
 	CreateWICTextureFromFile(device, context, L"Textures/PaintM.tif", 0, &paint->metalness);
+	CreateWICTextureFromFile(device, context, L"Textures/Brick2.tif", 0, &brick->texture);
+	CreateWICTextureFromFile(device, context, L"Textures/Brick2N.tif", 0, &brick->normalMap);
+	CreateWICTextureFromFile(device, context, L"Textures/Brick2R.tif", 0, &brick->roughness);
+	CreateWICTextureFromFile(device, context, L"Textures/NonMetal.png", 0, &brick->metalness);
 }
 
 
@@ -225,6 +231,9 @@ void Game::CreateBasicGeometry()
 	Entity* e2 = new Entity(mesh1, paint, 1.0f);
 	entities.push_back(e2);
 	e2->SetTranslation(XMFLOAT3(1.0f, 0.0f, 0.0f));
+	Entity* e3 = new Entity(mesh1, brick, 1.0f);
+	entities.push_back(e3);
+	e3->SetTranslation(XMFLOAT3(2.0f, 0.0f, 0.0f));
 
 	//collisionManager->addCollider(e1->GetCollider());
 
