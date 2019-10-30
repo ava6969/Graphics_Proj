@@ -3,10 +3,18 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <string>
+#include <dwrite.h>
+#include <d2d1.h>
+#include <Winuser.h>
+#include <d2d1helper.h>
+#define INITIALX_96DPI 50 
+#define INITIALY_96DPI 50 
 
 // We can include the correct library files here
 // instead of in Visual Studio settings if we want
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
 
 class DXCore
 {
@@ -27,6 +35,7 @@ public:
 		WPARAM wParam,	// Message's first parameter
 		LPARAM lParam	// Message's second parameter
 		);
+
 
 	// Internal method for message handling
 	LRESULT ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -69,10 +78,32 @@ protected:
 	ID3D11RenderTargetView* backBufferRTV;
 	ID3D11DepthStencilView* depthStencilView;
 
+	// Text Rendering Interfaces
+	IDWriteFactory* pDWriteFactory_;
+	IDWriteTextFormat* pTextFormat_;
+
+	// Direct2D objects
+	ID2D1Factory* pD2DFactory_;
+	ID2D1RenderTarget* pRT_;
+	ID2D1SolidColorBrush* pBlackBrush_;
+
+
+
+	HRESULT CreateDeviceResourcesForTextRendering();
+	void DiscardDeviceResources();
+	HRESULT DrawText();
+
+
+	// Text Strings to render and its lenght
+	const wchar_t* wszText_;
+	UINT32 cTextLength_; 
+
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 
 private:
+
+
 	// Timing related data
 	double perfCounterSeconds;
 	float totalTime;
@@ -87,5 +118,9 @@ private:
 	
 	void UpdateTimer();			// Updates the timer for this frame
 	void UpdateTitleBarStats();	// Puts debug info in the title bar
+
+	// Device Independent resource 
+	void CreateDeviceIndependentResources();
+
 };
 

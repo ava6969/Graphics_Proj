@@ -6,6 +6,7 @@
 #include "Camera.h"
 #include <DirectXMath.h>
 
+
 class CollisionManager
 {
 public:
@@ -13,20 +14,16 @@ public:
 	CollisionManager(Camera* cam);
 	~CollisionManager();
 
-	void addCollider(Entity ent) {
-		if (ent.GetCollider() != NULL) {
-			collidableObjects.push_back(ent.GetCollider());
+	void addCollider(Entity* ent) {
+		if (ent->GetCollider() != NULL) {
+			collidableObjects.push_back(ent);
 		}
-	}
-	void addCollider(Collider* col) {
-
-		collidableObjects.push_back(col);
 	}
 
 	bool checkOverlap(Entity ent);
 	bool checkOverlap(Camera* cam);
 	Collider* checkOverlap(Collider* col, float* radSum, float* distSqr);
-	void HandlePlayerCollisions();
+	Entity* HandlePlayerCollisions(const char* tag = nullptr);
 
 	// detection method
 	bool CircleToCircleCollision(Collider* col1, Collider* col2);
@@ -35,7 +32,7 @@ public:
 	// collision resolution
 	void ResolvePlayerCollision(Collider* other);
 private:
-	std::vector<Collider*> collidableObjects;
+	std::vector<Entity*> collidableObjects;
 	Camera* player;
 };
 

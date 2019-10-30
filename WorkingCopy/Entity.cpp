@@ -3,23 +3,22 @@ using namespace DirectX;
 
 Entity::Entity()
 {
+
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 
 	// set initial scale and position
 	position = XMFLOAT3(0, 0, 0);
 	scale = XMFLOAT3(1, 1, 1);
-
 	// set the initial rotation quaternion
 	XMStoreFloat4(&rotation, XMQuaternionIdentity());
-
 	mesh = new Mesh();
-
 	isDirty = true;
 }
 
 Entity::Entity(Mesh* m, Material* mat, float rad)
 {
+
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 

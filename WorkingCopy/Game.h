@@ -9,6 +9,12 @@
 #include "Material.h"
 #include "Lights.h"
 #include "CollisionManager.h"
+#include "SpriteFont.h"
+#include "SpriteBatch.h"
+
+
+
+
 
 class Game 
 	: public DXCore
@@ -36,9 +42,14 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
-
+	void DrawUI();
+	void SpawnLetters(float x,float y ,float z);
     void SpawnTreeGrid(int x, int y, int step);
+	void Destroy(Entity* objectToDestroy);
+	void CheckLetterCollected();
 
+	// Letter Stuffs
+	int letterCount;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -53,13 +64,17 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 
+
 	// array of meshes to load / draw
 	std::vector<Mesh*> meshes;
 	std::vector<Entity*> entities;
 
     std::vector<Entity*> trees;
+	std::vector<Entity*> letters;
 
-
+	// Text & ui stuffs
+	DirectX::SpriteFont* arial;
+	DirectX::SpriteBatch* spriteBatch;
 
 	float frameCounter;
 

@@ -71,8 +71,8 @@ Collider* CollisionManager::checkOverlap(Collider* col, float* radSum, float* di
 	for (int i = 0; i < collidableObjects.size(); i++) {
 
 		
-		if (CircleToCircleCollision(collidableObjects[i], col, radSum, distSqr)) {
-			return collidableObjects[i];
+		if (CircleToCircleCollision(collidableObjects[i]->GetCollider(), col, radSum, distSqr)) {
+			return collidableObjects[i]->GetCollider();
 
 		}
 
@@ -80,17 +80,27 @@ Collider* CollisionManager::checkOverlap(Collider* col, float* radSum, float* di
 	return NULL;
 }
 
-void CollisionManager::HandlePlayerCollisions()
+Entity* CollisionManager::HandlePlayerCollisions(const char* tag )
 {
-	if (player->GetDebug()) return;
-
-	for (int i = 0; i < collidableObjects.size(); i++)
+	if (player->GetDebug()) return nullptr;
+	int i = 0;
+	for (Entity* itr : collidableObjects)
 	{
 
-		if (CircleToCircleCollision(player->GetCollider(), collidableObjects[i]))
+		if (CircleToCircleCollision(player->GetCollider(), itr->GetCollider()))
 		{
-			ResolvePlayerCollision(collidableObjects[i]);
+			
+			if (itr->getTag() == tag)
+			{
+				collidableObjects.erase(collidableObjects.begin() + i);
+				return itr;
+			}
+			else {
+				ResolvePlayerCollision(collidableObjects[i]->GetCollider());
+			}
+			
 		}
+		i++;
 	}
 }
 

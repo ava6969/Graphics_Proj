@@ -81,9 +81,15 @@ void Game::Init()
     // Helper methods for loading shaders, creating some basic
     // geometry to draw and some simple camera matrices.
     //  - You'll be expanding and/or replacing these later
+
     LoadShaders();
     //CreateMatrices();
     CreateBasicGeometry();
+
+	spriteBatch = new SpriteBatch(context);
+	arial = new SpriteFont(device, L"../../Assets/Textures/arial.spritefont");
+
+	letterCount = 5;
 
     // Tell the input assembler stage of the pipeline what kind of
     // geometric primitives (points, lines or triangles) we want to draw.  
@@ -107,6 +113,32 @@ void Game::Init()
         5.0f,								// radius
         1.0f								// intensity
     };
+
+	HRESULT hr = CreateDeviceResourcesForTextRendering();
+
+	if (SUCCEEDED(hr))
+	{
+		pRT_->BeginDraw();
+
+		pRT_->SetTransform(D2D1::IdentityMatrix());
+
+		pRT_->Clear(D2D1::ColorF(D2D1::ColorF::White));
+
+		// Call the DrawText method of this class.
+		hr = DrawText();
+
+		if (SUCCEEDED(hr))
+		{
+			hr = pRT_->EndDraw(
+			);
+		}
+	}
+
+	if (FAILED(hr))
+	{
+		DiscardDeviceResources();
+	}
+
 }
 
 // --------------------------------------------------------
@@ -209,41 +241,7 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-    // Create some temporary variables to represent colors
-    // - Not necessary, just makes things more readable
-    /*XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-    XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-    XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
 
-    // Set up the vertices of the triangle we would like to draw
-    // - We're going to copy this array, exactly as it exists in memory
-    //    over to a DirectX-controlled data structure (the vertex buffer)
-    Vertex vertices[] =
-    {
-        { XMFLOAT3(+0.0f, +1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-        { XMFLOAT3(+1.0f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-        { XMFLOAT3(-1.0f, -1.0f, +0.0f), XMFLOAT3(0,0,-1), XMFLOAT2(0,0) },
-    };
-
-    // Set up the indices, which tell us which vertices to use and in which order
-    // - This is somewhat redundant for just 3 vertices (it's a simple example)
-    // - Indices are technically not required if the vertices are in the buffer
-    //    in the correct order and each one will be used exactly once
-    // - But just to see how it's done...
-    unsigned int indices[] = { 0, 1, 2 };
-    // make the mesh
-    Mesh* mesh1 = new Mesh(vertices, 3, indices, 3, device);
-
-    meshes.push_back(mesh1);
-
-    Entity* e1 = new Entity(mesh1, defaultMaterial);
-    Entity* e2 = new Entity(mesh1, defaultMaterial);
-    Entity* e3 = new Entity(mesh1, defaultMaterial);
-    e2->SetTranslation(XMFLOAT3(+2.0, -1.0, 0));
-    e3->SetTranslation(XMFLOAT3(-2.0, -1.0, 0));
-    entities.push_back(e1);
-    entities.push_back(e2);
-    entities.push_back(e3);*/
 
     const char* filename = "Models/sphere.obj";
     Mesh* mesh1 = new Mesh(filename, device);
@@ -251,10 +249,7 @@ void Game::CreateBasicGeometry()
     meshes.push_back(mesh1);
     entities.push_back(e1);
 
-
-
-
-    collisionManager->addCollider(e1->GetCollider());
+    collisionManager->addCollider(e1);
 
     Vertex vertices[] =
     {
@@ -273,6 +268,8 @@ void Game::CreateBasicGeometry()
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
+	XMFLOAT3 pos = e1->GetPosition();
+	SpawnLetters(pos.x + 4, -1.0f, pos.z +10);
 
 }
 
@@ -280,6 +277,12 @@ void Game::CreateBasicGeometry()
 
 //Spawns the trees for the game in a grid
 //TODO Random Rotation
+/*
+@param
+int x - neg  bound
+int y - pos  bound
+int steps - intervals between range [-x,x] and [-z,z] to spawn trees
+*/
 void Game::SpawnTreeGrid(int x, int y, int step)
 {
     float spawnWeight = 1.15;
@@ -289,23 +292,24 @@ void Game::SpawnTreeGrid(int x, int y, int step)
     const char* treeFileName = "Models/DeadTree.obj";
     Mesh* treeMesh = new Mesh(treeFileName, device);
     meshes.push_back(treeMesh);
+	int count = 5;
 
     for (int i = -x; i <= x; i += step) {
         for (int j = -y; j <= y; j += step) {
             float spawnSeed = (rand() % 100 + 1) / spawnStrenght;
             if (spawnSeed <= spawnChance) {
 
-
                 Entity* tree = new Entity(treeMesh, defaultMaterial, 1.0f);
+				tree->SetTag("tree");
                 spawnStrenght = 1;
                 float offsetX = (rand() % 10 + 1) / 10.0f;
                 float offsetZ = (rand() % 10 + 1) / 10.0f;
 
                 offsetX *= step / 2;
                 offsetZ *= step / 3;
-                collisionManager->addCollider(tree->GetCollider());
+                collisionManager->addCollider(tree);
 
-                tree->SetTranslation(i + offsetX, -3, j + offsetZ);
+                tree->SetTranslation(i + offsetX, -3, j + offsetZ);				
                 entities.push_back(tree);
 
             }
@@ -319,6 +323,69 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 
 
 }
+
+void Game::Destroy(Entity* objectToDestroy)
+{
+	// gets a pointer to an object and compares position of the resource to an object in the entity vector, removes object at that position
+	int count = 0;
+	for (auto itr : entities)
+	{
+		if (objectToDestroy->GetPosition().x == itr->GetPosition().x &&
+			objectToDestroy->GetPosition().y == itr->GetPosition().y &&
+			objectToDestroy->GetPosition().z == itr->GetPosition().z)
+		{
+			Entity* toDelete = entities[count];
+			entities.erase(entities.begin() + count);
+			delete toDelete;
+		}
+		++count;
+	}
+}
+
+void Game::CheckLetterCollected()
+{
+	//for (int i = )
+}
+
+
+void Game::SpawnLetters(float x, float y, float z)
+{
+
+	const float y_axis = 20.0f;
+	// create a mesh for letters and push to vector of meshes
+	const char* file = "Models/cube.obj";
+	Mesh* letterMesh = new Mesh(file, device);
+	meshes.push_back(letterMesh);
+
+	Entity* letter = new Entity(letterMesh, defaultMaterial, 1.0f);
+	letter->SetTag("letter");
+	collisionManager->addCollider(letter);
+	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	letter->SetScale(SCALE);
+	letter->SetTranslation(x, y, z);
+	entities.push_back(letter);
+
+}
+
+
+void Game::DrawUI()
+{
+	spriteBatch->Begin();
+
+	// Basic controls
+	float h_offset = 50.0f;
+	float w_offset = 200.0f;
+
+	arial->DrawString(spriteBatch, L"Letters remaining - ", XMVectorSet(width - w_offset, height - h_offset, 0, 0));
+	//arial->DrawString(spriteBatch, reinterpret_cast<const char*>(letterCount) , XMVectorSet(width - w_offset + 23 , height - h_offset, 0, 0));
+	arial->DrawString(spriteBatch, L" of 5", XMVectorSet(width - w_offset - 24, height - h_offset, 0, 0));
+	spriteBatch->End();
+
+	// Reset render states, since sprite batch changes these!
+	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
+	context->OMSetDepthStencilState(0, 0);
+}
+
 
 
 // --------------------------------------------------------
@@ -354,7 +421,14 @@ void Game::Update(float deltaTime, float totalTime)
 
     frameCounter = frameCounter + deltaTime;
 
-    collisionManager->HandlePlayerCollisions();
+    // if letter is found
+	auto objToRemove = collisionManager->HandlePlayerCollisions("letter");
+	if (objToRemove != nullptr)
+	{
+		Destroy(objToRemove);
+	
+	}
+
 
     //float val = sin(frameCounter);
     //entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
@@ -413,6 +487,8 @@ void Game::Draw(float deltaTime, float totalTime)
             0,     // Offset to the first index we want to use
             0);    // Offset to add to each index when looking up vertices
     }
+
+	DrawUI();
 
     // Present the back buffer to the user
     //  - Puts the final frame we're drawing into the window so the user can see it

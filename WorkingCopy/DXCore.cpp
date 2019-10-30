@@ -61,6 +61,9 @@ DXCore::DXCore(
 	__int64 perfFreq;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
 	perfCounterSeconds = 1.0 / (double)perfFreq;
+
+	// D2 OBject
+	CreateDeviceIndependentResources();
 }
 
 // --------------------------------------------------------
@@ -170,7 +173,8 @@ HRESULT DXCore::InitDirectX()
 	// want to make a "Debug DirectX Device" to see some
 	// errors and warnings in Visual Studio's output window
 	// when things go wrong!
-	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG ;
+	deviceFlags |= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 #endif
 
 	// Create a description of how our swap
@@ -202,7 +206,7 @@ HRESULT DXCore::InitDirectX()
 		0,							// Used when doing software rendering
 		deviceFlags,				// Any special options
 		0,							// Optional array of possible verisons we want as fallbacks
-		0,							// The number of fallbacks in the above param
+		0,// The number of fallbacks in the above param
 		D3D11_SDK_VERSION,			// Current version of the SDK
 		&swapDesc,					// Address of swap chain options
 		&swapChain,					// Pointer to our Swap Chain pointer
@@ -219,6 +223,29 @@ HRESULT DXCore::InitDirectX()
 		__uuidof(ID3D11Texture2D),
 		(void**)&backBufferTexture);
 
+	// use the texture to obtain a DXGI surface
+	IDXGISurface* pDxgiSurface = nullptr;
+	hr = backBufferTexture->QueryInterface(&pDxgiSurface);
+
+	// create root factory interface for all direct2d objects
+	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory_);
+
+	if (SUCCEEDED(hr))
+	{
+		auto props = D2D1::RenderTargetProperties(
+			D2D1_RENDER_TARGET_TYPE_DEFAULT,
+			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
+			96,
+			96
+		);
+
+		hr = pD2DFactory_->CreateDxgiSurfaceRenderTarget(
+			pDxgiSurface,
+			&props,
+			&pRT_
+		);
+	}
+
 	// Now that we have the texture, create a render target view
 	// for the back buffer so we can render into it.  Then release
 	// our local reference to the texture, since we have the view.
@@ -228,8 +255,11 @@ HRESULT DXCore::InitDirectX()
 			backBufferTexture,
 			0,
 			&backBufferRTV);
+
 		backBufferTexture->Release();
 	}
+
+	
 
 	// Set up the description of the texture to use for the depth buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc = {};
@@ -475,6 +505,106 @@ void DXCore::UpdateTitleBarStats()
 	SetWindowText(hWnd, output.str().c_str());
 	fpsFrameCount = 0;
 	fpsTimeElapsed += 1.0f;
+}
+
+void DXCore::DiscardDeviceResources()
+{
+	pRT_->Release();
+	pBlackBrush_->Release();
+}
+
+void DXCore::CreateDeviceIndependentResources()
+{
+
+	// create root factory interface for all DirectWrite objects
+	HRESULT	hr = DWriteCreateFactory(
+			DWRITE_FACTORY_TYPE_SHARED,
+			__uuidof(IDWriteFactory),
+			reinterpret_cast<IUnknown**>(&pDWriteFactory_)
+		);
+
+	// initialize text string and store length
+	wszText_ = L"Hello World using DirectWrite!";
+	cTextLength_ = static_cast<UINT32>(wcslen(wszText_));
+
+	// Create IDWriteTextFormat interface to 
+	// specify the font, weight, stretch, style, and locale that will be used to render the text string. 
+	if (SUCCEEDED(hr))
+	{
+		hr = pDWriteFactory_->CreateTextFormat(
+			L"Gabriola",                // Font family name.
+			NULL,                       // Font collection (NULL sets it to use the system font collection).
+			DWRITE_FONT_WEIGHT_REGULAR,
+			DWRITE_FONT_STYLE_NORMAL,
+			DWRITE_FONT_STRETCH_NORMAL,
+			72.0f,
+			L"en-us",
+			&pTextFormat_
+		);
+	}
+
+	// adjust position with setTextAlignment and SetParagraph Alignment method
+	// Center align (horizontally) the text.
+	if (SUCCEEDED(hr))
+	{
+		hr = pTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+	}
+
+	if (SUCCEEDED(hr))
+	{
+		hr = pTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+
+	}
+	
+}
+
+HRESULT DXCore::CreateDeviceResourcesForTextRendering()
+{
+	HRESULT hr = S_OK;
+	RECT rc;
+	GetClientRect(hWnd, &rc);
+
+	D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
+
+	if (!pRT_)
+	{
+		hr = pRT_->CreateSolidColorBrush(
+				D2D1::ColorF(D2D1::ColorF::Black),
+				&pBlackBrush_
+		);
+	}
+
+	return hr;
+}
+
+HRESULT DXCore::DrawText()
+{
+	RECT rc;
+	GetClientRect(hWnd, &rc);
+	int iDpi = GetDpiForWindow(hWnd);
+	float dpiScaleX_ = MulDiv(INITIALX_96DPI, iDpi, 96);
+	float dpiScaleY_ = MulDiv(INITIALY_96DPI, iDpi, 96);
+
+	// define area for text layout / create algorithm for this
+	D2D1_RECT_F layoutRect = D2D1::RectF(
+		static_cast<FLOAT>(rc.left) / dpiScaleX_,
+		static_cast<FLOAT>(rc.top) / dpiScaleY_,
+		static_cast<FLOAT>(rc.right - rc.left) / dpiScaleX_,
+		static_cast<FLOAT>(rc.bottom - rc.top) / dpiScaleY_
+	);
+
+	// render text to screen
+	pRT_->DrawText(
+		wszText_,        // The string to render.
+		cTextLength_,    // The string's length.
+		pTextFormat_,    // The text format.
+		layoutRect,       // The region of the window where the text will be rendered.
+		pBlackBrush_     // The brush used to draw the text.
+	);
+	if (pRT_)
+	{
+		return S_OK;
+	}
 }
 
 // --------------------------------------------------------

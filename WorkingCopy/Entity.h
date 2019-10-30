@@ -28,13 +28,18 @@ public:
 	void MoveForward(float amount);
 	void SetDirtyMatrix();
 	void ComputeWorldMatrix();
-	
+	inline void SetTag(const char* tag) { this->tag = tag; };
+
 	ID3D11Buffer* GetVertexBuffer();
 	ID3D11Buffer* GetIndexBuffer();
 	int GetIndexCount();
 	Material* GetMaterial();
 	Collider* GetCollider();
+	inline DirectX::XMFLOAT3 GetPosition() { return position; }
+
+	inline const char* getTag() { return tag; }
 	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
+
 private:
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT3 position;
@@ -44,5 +49,9 @@ private:
 	bool isDirty;
 	Material* material;
 	Collider* collider;
+	// tag that describes entity
+	const char* tag;
+
+	
 };
 
