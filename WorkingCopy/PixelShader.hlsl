@@ -129,7 +129,7 @@ float SpecDistribution(float3 n, float3 h, float roughness)
 	// remap
 	float a2 = max(a * a, 0.000001f);
 
-	float denomToSquare = NdotH2 * (a2 - 1) + 1;
+	float denomToSquare = NdotH2 * (a2 - 1.0f) + 1.0f;
 
 	// final value
 	return a2 / (3.14159265f * denomToSquare * denomToSquare);
@@ -141,17 +141,17 @@ float3 Fresnel(float3 v, float3 h, float3 f0)
 	float VdotH = saturate(dot(v, h));
 
 	// final value - Shlick
-	return f0 + (1 - f0) * pow(1 - VdotH, 5);
+	return f0 + (1.0f - f0) * pow(1.0f - VdotH, 5);
 }
 
 float GeometricShadowing(float3 n, float3 v, float3 h, float roughness)
 {
 	// end result of remapping
-	float k = pow(roughness + 1, 2) / 8.0f;
+	float k = pow(roughness + 1.0f, 2) / 8.0f;
 	float NdotV = saturate(dot(n, v));
 
 	// final value
-	return NdotV / (NdotV * (1 - k) + k);
+	return NdotV / (NdotV * (1.0f - k) + k);
 }
 
 // n = surface normal
@@ -174,7 +174,7 @@ float diffuseBRDF(float3 n, float3 l)
 
 float3 diffuseEnergyConserve(float diffuse, float3 specular, float metalness)
 {
-	return diffuse * ((1 - saturate(specular)) * (1 - metalness));
+	return diffuse * ((1.0f - saturate(specular)) * (1.0f - metalness));
 }
 
 float4 calculatePBR(float3 n, float3 l, float3 v, float3 h, float roughness, float metalness, float3 specColor, float3 tex, float3 lightA, float3 lightD)
@@ -182,7 +182,10 @@ float4 calculatePBR(float3 n, float3 l, float3 v, float3 h, float roughness, flo
 	float diffuse = diffuseBRDF(n, l);
 	float3 specular = microfacetBRDF(n, l, v, h, roughness, specColor);
 	float3 diffuseAdjusted = diffuseEnergyConserve(diffuse, specular, metalness);
-	return float4((lightA * tex) + diffuseAdjusted * tex * lightD + specular, 1);
+	float3 result = (lightA * tex) + diffuseAdjusted * tex * lightD + specular;
+	// gamma correct
+	result = pow(result, 1.0f / 2.2f);
+	return float4(result, 1);
 }
 
 // --------------------------------------------------------
@@ -201,6 +204,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 	float4 mapColor = normalMap.Sample(basicSampler, input.uv);
 	float4 roughness = roughnessMap.Sample(basicSampler, input.uv);
 	float4 metalness = metalnessMap.Sample(basicSampler, input.uv);
+
+	// gamma correct texture
+	surfaceColor = float4(pow(surfaceColor.rgb, 2.2f), 1);
+
 	// normalize normals
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);

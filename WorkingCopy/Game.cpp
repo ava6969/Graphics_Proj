@@ -109,7 +109,7 @@ void Game::Init()
 		1.0f								// intensity
 	};
 	light2 = {
-		XMFLOAT4(0.1f, 0.1f, 0.1f, 1.0f),
+		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),
 		XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
 		XMFLOAT3(1.0f,-1.0f,1.0f),
 		1.0f
@@ -141,7 +141,7 @@ void Game::LoadShaders()
 	device->CreateSamplerState(&sampDesc, &samplerOptions);
 
 	defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
-	paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.1f,0.1f,0.1f));
+	paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.07f,0.07f,0.07f));
 	brick = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.04f, 0.04f, 0.04f));
 	// load the textures and bump maps
 	CreateWICTextureFromFile(
