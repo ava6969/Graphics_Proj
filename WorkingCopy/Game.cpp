@@ -242,14 +242,16 @@ void Game::CreateMatrices()
 void Game::CreateBasicGeometry()
 {
 
+	/*
+	const char* filename = "Models/sphere.obj";
+	Mesh* mesh1 = new Mesh(filename, device);
+	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
+	meshes.push_back(mesh1);
+	entities.push_back(e1);
 
-    const char* filename = "Models/sphere.obj";
-    Mesh* mesh1 = new Mesh(filename, device);
-    Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
-    meshes.push_back(mesh1);
-    entities.push_back(e1);
+	collisionManager->addCollider(e1);
+	*/
 
-    collisionManager->addCollider(e1);
 
     Vertex vertices[] =
     {
@@ -268,8 +270,7 @@ void Game::CreateBasicGeometry()
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
-	XMFLOAT3 pos = e1->GetPosition();
-	SpawnLetters(pos.x + 4, -1.0f, pos.z +10);
+	SpawnLetters(0.0f, -1.0f, 0.0f);
 
 }
 
@@ -360,7 +361,7 @@ void Game::SpawnLetters(float x, float y, float z)
 	Entity* letter = new Entity(letterMesh, defaultMaterial, 1.0f);
 	letter->SetTag("letter");
 	collisionManager->addCollider(letter);
-	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.5f);
+	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.02f);
 	letter->SetScale(SCALE);
 	letter->SetTranslation(x, y, z);
 	entities.push_back(letter);
@@ -433,7 +434,7 @@ void Game::Update(float deltaTime, float totalTime)
     //float val = sin(frameCounter);
     //entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
     //entities[1]->SetScale(XMFLOAT3(val + 1, val + 1, val + 1));
-    entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
+    //entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
     }

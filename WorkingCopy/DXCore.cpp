@@ -594,13 +594,16 @@ HRESULT DXCore::DrawText()
 	);
 
 	// render text to screen
-	pRT_->DrawText(
+	/*
+		pRT_->DrawText(
 		wszText_,        // The string to render.
 		cTextLength_,    // The string's length.
 		pTextFormat_,    // The text format.
 		layoutRect,       // The region of the window where the text will be rendered.
 		pBlackBrush_     // The brush used to draw the text.
 	);
+	*/
+
 	if (pRT_)
 	{
 		return S_OK;
