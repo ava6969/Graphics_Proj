@@ -72,9 +72,9 @@ Game::~Game()
 	floorSRV->Release();
 	floorNSRV->Release();
 	/*copperMetallic->Release();
-	copperRough->Release();
+	copperRough->Release();*/
 	samplerOptions->Release();
-	paintAlbedo->Release();
+	/*paintAlbedo->Release();
 	paintNormal->Release();
 	paintRough->Release();
 	paintMetallic->Release();*/
