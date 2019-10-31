@@ -34,7 +34,7 @@ public:
 	int GetIndexCount();
 	Material* GetMaterial();
 	Collider* GetCollider();
-	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
+	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2);
 private:
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT3 position;
