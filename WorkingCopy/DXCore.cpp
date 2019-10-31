@@ -78,6 +78,14 @@ DXCore::~DXCore()
 	if (swapChain) { swapChain->Release();}
 	if (context) { context->Release();}
 	if (device) { device->Release();}
+	
+	if (pTextFormat_) { pTextFormat_->Release(); }
+
+	pDWriteFactory_->Release();
+	pD2DFactory_->Release();
+
+	if (m_d3dDebug) { m_d3dDebug->Release(); }
+	DiscardDeviceResources();
 }
 
 // --------------------------------------------------------
@@ -215,6 +223,9 @@ HRESULT DXCore::InitDirectX()
 		&context);					// Pointer to our Device Context pointer
 	if (FAILED(hr)) return hr;
 
+	device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&m_d3dDebug));
+	m_d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+
 	// The above function created the back buffer render target
 	// for us, but we need a reference to it
 	ID3D11Texture2D* backBufferTexture = 0;
@@ -245,7 +256,7 @@ HRESULT DXCore::InitDirectX()
 			&pRT_
 		);
 	}
-
+	
 	// Now that we have the texture, create a render target view
 	// for the back buffer so we can render into it.  Then release
 	// our local reference to the texture, since we have the view.
@@ -432,6 +443,7 @@ HRESULT DXCore::Run()
 // --------------------------------------------------------
 void DXCore::Quit()
 {
+	
 	PostMessage(this->hWnd, WM_CLOSE, NULL, NULL);
 }
 
@@ -510,7 +522,7 @@ void DXCore::UpdateTitleBarStats()
 void DXCore::DiscardDeviceResources()
 {
 	pRT_->Release();
-	pBlackBrush_->Release();
+	if(pBlackBrush_) pBlackBrush_->Release();
 }
 
 void DXCore::CreateDeviceIndependentResources()
@@ -542,7 +554,7 @@ void DXCore::CreateDeviceIndependentResources()
 			&pTextFormat_
 		);
 	}
-
+	
 	// adjust position with setTextAlignment and SetParagraph Alignment method
 	// Center align (horizontally) the text.
 	if (SUCCEEDED(hr))

@@ -70,6 +70,9 @@ Game::~Game()
     floorSRV->Release();
     floorNSRV->Release();
     samplerOptions->Release();
+
+	delete arial;
+	delete spriteBatch;
 }
 
 // --------------------------------------------------------

@@ -7,6 +7,7 @@
 #include <d2d1.h>
 #include <Winuser.h>
 #include <d2d1helper.h>
+#include <dxgidebug.h>
 #define INITIALX_96DPI 50 
 #define INITIALY_96DPI 50 
 
@@ -73,6 +74,7 @@ protected:
 	D3D_FEATURE_LEVEL		dxFeatureLevel;
 	IDXGISwapChain*			swapChain;
 	ID3D11Device*			device;
+	ID3D11Debug*			m_d3dDebug;
 	ID3D11DeviceContext*	context;
 
 	ID3D11RenderTargetView* backBufferRTV;
