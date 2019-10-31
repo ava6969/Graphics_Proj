@@ -39,6 +39,11 @@ private:
 
     void SpawnTreeGrid(int x, int y, int step);
 
+	void IncrementLevel(int modifier);
+	void IncrementLevelManually();
+
+	void ChangeStatic();		// Increases or decreases static based on slenderman proximity to player
+
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	SimpleVertexShader* vertexShader;
@@ -83,5 +88,10 @@ private:
 	ID3D11ShaderResourceView* floorSRV;
 	ID3D11ShaderResourceView* floorNSRV;
 	ID3D11SamplerState* samplerOptions;
+
+	int numNotesCollected;		// Number of notes collected
+	bool leftBracketPressed;
+	bool rightBracketPressed;
+	float percentStatic;			// Number to control how much static
 };
 

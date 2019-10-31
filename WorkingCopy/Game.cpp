@@ -37,6 +37,9 @@ Game::Game(HINSTANCE hInstance)
 #endif
     camera = new Camera((float)width, (float)height);
     collisionManager = new CollisionManager(camera);
+	numNotesCollected = 0;
+	leftBracketPressed = false;
+	rightBracketPressed = false;
 }
 
 // --------------------------------------------------------
@@ -252,6 +255,13 @@ void Game::CreateBasicGeometry()
     entities.push_back(e1);
 
 
+	const char* filename2 = "Models/slenderman.obj";
+	Mesh* mesh2 = new Mesh(filename, device);
+	Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
+	meshes.push_back(mesh2);
+	entities.push_back(e2);
+
+
 
 
     collisionManager->addCollider(e1->GetCollider());
@@ -320,6 +330,46 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 
 }
 
+void Game::IncrementLevel(int modifier)
+{
+	numNotesCollected += modifier * 1;
+	numNotesCollected %= 5;
+	printf("%d", numNotesCollected);
+	if (numNotesCollected == 4) {
+		printf("You win");
+	}
+}
+
+// For some reason this increments a bunch of times each press, can't figure out why
+void Game::IncrementLevelManually()
+{
+	if (rightBracketPressed) {
+		printf("Right: true");
+	}
+	
+	if (GetAsyncKeyState(VK_OEM_4) && 0x8000 && !leftBracketPressed) {
+		leftBracketPressed = true;
+		IncrementLevel(-1);
+	}
+
+	else {
+		leftBracketPressed = false;
+	}
+
+	if (GetAsyncKeyState(VK_OEM_6) && 0x8000 && !rightBracketPressed) {
+		rightBracketPressed = true;
+		IncrementLevel(1);
+	}
+
+	else {
+		rightBracketPressed = false;
+	}
+}
+
+void Game::ChangeStatic()
+{
+}
+
 
 // --------------------------------------------------------
 // Handle resizing DirectX "stuff" to match the new window size.
@@ -363,6 +413,8 @@ void Game::Update(float deltaTime, float totalTime)
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
     }
+
+	IncrementLevelManually();
 }
 
 // --------------------------------------------------------

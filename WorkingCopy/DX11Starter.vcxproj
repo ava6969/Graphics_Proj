@@ -133,6 +133,7 @@
     <ClCompile Include="Material.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
+    <ClCompile Include="SlenderMan.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -145,6 +146,7 @@
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="SimpleShader.h" />
+    <ClInclude Include="SlenderMan.h" />
     <ClInclude Include="Vertex.h" />
   </ItemGroup>
   <ItemGroup>
