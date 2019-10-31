@@ -172,6 +172,23 @@ float diffuseBRDF(float3 n, float3 l)
 	return saturate(dot(n, l));
 }
 
+float diffuseBRDFSpotlight(float3 n, float3 l, SpotLight light, float3 pos)
+{
+	// first do point light calculation
+	float NdotL = saturate(dot(n, l));
+
+	// calculate the spot light falloff
+	float angleFromCenter = max(dot(-l, light.Direction), 0.0f);
+	float spotAmount = pow(angleFromCenter, light.Angle);
+
+	// calculate attenuation
+	float dist = distance(light.Position, pos);
+	float range = light.MaxLength;
+	float att = saturate(1.0f - (dist * dist / (range * range)));
+
+	return saturate(spotAmount * att);
+}
+
 float3 diffuseEnergyConserve(float diffuse, float3 specular, float metalness)
 {
 	return diffuse * ((1.0f - saturate(specular)) * (1.0f - metalness));
@@ -183,6 +200,29 @@ float4 calculatePBR(float3 n, float3 l, float3 v, float3 h, float roughness, flo
 	float3 specular = microfacetBRDF(n, l, v, h, roughness, specColor);
 	float3 diffuseAdjusted = diffuseEnergyConserve(diffuse, specular, metalness);
 	float3 result = (lightA * tex) + diffuseAdjusted * tex * lightD + specular;
+	// gamma correct
+	result = pow(result, 1.0f / 2.2f);
+	return float4(result, 1);
+}
+
+float4 calculatePBRSpotlight(float3 n, float3 l, float3 v, float3 h, float roughness, float metalness, float3 specColor, float3 tex, SpotLight light, float3 pos)
+{
+	// run normal pbr
+	float diffuse = diffuseBRDF(n, l);
+	float3 specular = microfacetBRDF(n, l, v, h, roughness, specColor);
+	float3 diffuseAdjusted = diffuseEnergyConserve(diffuse, specular, metalness);
+	// spot light calculation
+	// calculate the spot light falloff
+	float angleFromCenter = max(dot(-l, light.Direction), 0.0f);
+	float spotAmount = pow(angleFromCenter, light.Angle);
+
+	// calculate attenuation
+	float dist = distance(light.Position, pos);
+	float range = light.MaxLength;
+	float att = saturate(1.0f - (dist * dist / (range * range)));
+
+	// calculate final result
+	float3 result = ((light.AmbientColor * tex) + diffuseAdjusted * tex * light.DiffuseColor + specular) * att * spotAmount;
 	// gamma correct
 	result = pow(result, 1.0f / 2.2f);
 	return float4(result, 1);
@@ -224,12 +264,13 @@ float4 main(VertexToPixel input) : SV_TARGET
 	input.normal = normalize(mul(normalFromMap, TBN));
 
 	// set up values to use for lighting
-	float3 v = normalize(cameraPos - input.worldPos);
-	float3 l = normalize(-light2.Direction);
-	float3 h = normalize((v + l) / 2.0f);
+	float3 v = normalize(cameraPos - input.worldPos);	// to camera
+	//float3 l = normalize(-light2.Direction);			// to light
+	float3 l = normalize(light.Position - input.worldPos);
+	float3 h = normalize((v + l) / 2.0f);				// half vector
 	//float3 h = (v + l) / 2;
-	//float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light2.AmbientColor.rgb, light2.DiffuseColor.rgb);
-	return /*light1Color; //+*/ light2Color;
+	float4 light1Color = calculatePBRSpotlight(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light, input.worldPos);
+	//float4 light2Color = calculatePBR(input.normal, l, v, h, roughness.r, metalness.r, specularColor, surfaceColor.rgb, light2.AmbientColor.rgb, light2.DiffuseColor.rgb);
+	return light1Color; //+*/ light2Color;
 }
 

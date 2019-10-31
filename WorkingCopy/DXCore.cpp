@@ -170,7 +170,7 @@ HRESULT DXCore::InitDirectX()
 	// want to make a "Debug DirectX Device" to see some
 	// errors and warnings in Visual Studio's output window
 	// when things go wrong!
-	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	//deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
 	// Create a description of how our swap

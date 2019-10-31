@@ -109,7 +109,7 @@ void Game::Init()
 		1.0f								// intensity
 	};
 	light2 = {
-		XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),
+		XMFLOAT4(0.00f, 0.00f, 0.00f, 1.0f),
 		XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
 		XMFLOAT3(1.0f,-1.0f,1.0f),
 		1.0f
