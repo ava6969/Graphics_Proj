@@ -1,5 +1,4 @@
 #include "DXCore.h"
-
 #include <WindowsX.h>
 #include <sstream>
 
@@ -62,8 +61,7 @@ DXCore::DXCore(
 	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
 	perfCounterSeconds = 1.0 / (double)perfFreq;
 
-	// D2 OBject
-	CreateDeviceIndependentResources();
+
 }
 
 // --------------------------------------------------------
@@ -78,14 +76,9 @@ DXCore::~DXCore()
 	if (swapChain) { swapChain->Release();}
 	if (context) { context->Release();}
 	if (device) { device->Release();}
-	
-	if (pTextFormat_) { pTextFormat_->Release(); }
-
-	pDWriteFactory_->Release();
-	pD2DFactory_->Release();
 
 	if (m_d3dDebug) { m_d3dDebug->Release(); }
-	DiscardDeviceResources();
+
 }
 
 // --------------------------------------------------------
@@ -174,7 +167,7 @@ HRESULT DXCore::InitWindow()
 HRESULT DXCore::InitDirectX()
 {
 	// This will hold options for DirectX initialization
-	unsigned int deviceFlags = 0;
+	unsigned int deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// If we're in debug mode in visual studio, we also
@@ -182,13 +175,13 @@ HRESULT DXCore::InitDirectX()
 	// errors and warnings in Visual Studio's output window
 	// when things go wrong!
 	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG ;
-	deviceFlags |= D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+
 #endif
 
 	// Create a description of how our swap
 	// chain should work
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
-	swapDesc.BufferCount = 2;
+	swapDesc.BufferCount = 3;
 	swapDesc.BufferDesc.Width = width;
 	swapDesc.BufferDesc.Height = height;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
@@ -197,7 +190,7 @@ HRESULT DXCore::InitDirectX()
 	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapDesc.Flags = 0;
+	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;		// allow mode switching
 	swapDesc.OutputWindow = hWnd;
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
@@ -233,29 +226,6 @@ HRESULT DXCore::InitDirectX()
 		0,
 		__uuidof(ID3D11Texture2D),
 		(void**)&backBufferTexture);
-
-	// use the texture to obtain a DXGI surface
-	IDXGISurface* pDxgiSurface = nullptr;
-	hr = backBufferTexture->QueryInterface(&pDxgiSurface);
-
-	// create root factory interface for all direct2d objects
-	hr = D2D1CreateFactory(D2D1_FACTORY_TYPE_SINGLE_THREADED, &pD2DFactory_);
-
-	if (SUCCEEDED(hr))
-	{
-		auto props = D2D1::RenderTargetProperties(
-			D2D1_RENDER_TARGET_TYPE_DEFAULT,
-			D2D1::PixelFormat(DXGI_FORMAT_UNKNOWN, D2D1_ALPHA_MODE_PREMULTIPLIED),
-			96,
-			96
-		);
-
-		hr = pD2DFactory_->CreateDxgiSurfaceRenderTarget(
-			pDxgiSurface,
-			&props,
-			&pRT_
-		);
-	}
 	
 	// Now that we have the texture, create a render target view
 	// for the back buffer so we can render into it.  Then release
@@ -311,9 +281,107 @@ HRESULT DXCore::InitDirectX()
 	viewport.MaxDepth	= 1.0f;
 	context->RSSetViewports(1, &viewport);
 
+
+
+	// Direct2Dstuffs
+	InitDirect2D();
+	CreateBitmapRenderTarget();
+	InitializeTextFormats();
+
 	// Return the "everything is ok" HRESULT value
+	return hr;
+}
+
+HRESULT DXCore::InitDirect2D()
+{
+
+	// create the Direct2D factory
+	D2D1_FACTORY_OPTIONS options;
+#ifndef NDEBUG
+	options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+#else
+	options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
+#endif
+	// create the DirectWrite factory
+	if SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &writeFactory))
+		printf("SUCCESS: Created DWrite Factory\n");
+	
+	if SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory2), &options, &factory))
+		printf("SUCCESS: Created Direct2D Factory\n");
+
+	ComPtr<IDXGIDevice> dxgiDevice;
+	// get the dxgi device
+	if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice))) // change to regular pointer issue persist
+		printf("SUCCESS: Got DXGI Device\n");
+
+	// create the Direct2D device
+	if SUCCEEDED(factory->CreateDevice(dxgiDevice.Get(), &d2Device))
+		printf("SUCCESS: Created Direct2D device\n");
+
+	if (SUCCEEDED(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &d2Context)))
+		printf("SUCCESS:Created Direct2D device Context!\n");
+
+	return S_OK;
+
+}
+
+HRESULT DXCore::CreateBitmapRenderTarget()
+{
+	// specify the desired bitmap properties
+	D2D1_BITMAP_PROPERTIES1 bp;
+	bp.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
+	bp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+	bp.dpiX = 96.0f;
+	bp.dpiY = 96.0f;
+	bp.bitmapOptions = D2D1_BITMAP_OPTIONS::D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS::D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+	bp.colorContext = nullptr;
+
+	// Direct2D needs the DXGI version of the back buffer
+	ComPtr<IDXGISurface> dxgiBuffer;
+	if (SUCCEEDED(swapChain->GetBuffer(0, __uuidof(IDXGISurface), &dxgiBuffer)))
+		printf("SUCCESS: Retrived BackBuffer from SwapChain\n");
+	
+	// create the bitmap
+	ComPtr<ID2D1Bitmap1> targetBitmap;
+	HRESULT hr = d2Context->CreateBitmapFromDxgiSurface(dxgiBuffer.Get(), &bp, &targetBitmap);
+	if (SUCCEEDED(hr))
+		printf("SUCCESS: Created Direct2d bitmap from DXGI Surface!\n");
+
+	if (FAILED(hr))
+		printf("Critical error: Unable to create the Direct2D bitmap from the DXGI surface!\n");
+
+	// set the newly created bitmap as render target
+		d2Context->SetTarget(targetBitmap.Get());
+
+	// return success
+		return S_OK;
+}
+
+		
+HRESULT DXCore::InitializeTextFormats()
+{
+	// create standard brushes
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &yellowBrush))
+		printf("SUCCESS: Created yellow brush\n");
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &blackBrush))
+		printf("SUCCESS: Created Black brush\n");
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &whiteBrush))
+		printf("SUCCESS: Created White brush\n");
+		
+	// set up text formats
+
+	// FPS text
+	if(SUCCEEDED(writeFactory.Get()->CreateTextFormat(L"Lucida Console", nullptr, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12.0f, L"en-GB", &textFormatFPS)))
+		printf("SUCCESS: Created text format for FPS Information!\n");
+	if (SUCCEEDED(textFormatFPS->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING)))
+		printf("SUCCESS: Set Text Alignment\n");
+	if (SUCCEEDED(textFormatFPS->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)))
+		printf("SUCCESS:Set Paragraph Alignment\n");
+
+	// return success
 	return S_OK;
 }
+
 
 // --------------------------------------------------------
 // When the window is resized, the underlying 
@@ -325,6 +393,10 @@ HRESULT DXCore::InitDirectX()
 // --------------------------------------------------------
 void DXCore::OnResize()
 {
+	// release and reset all resources
+	if (d2Device)
+		d2Context->SetTarget(nullptr);
+
 	// Release existing DirectX views and buffers
 	if (depthStencilView) { depthStencilView->Release(); }
 	if (backBufferRTV) { backBufferRTV->Release(); }
@@ -385,8 +457,12 @@ void DXCore::OnResize()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
-}
 
+	// (re)-create the Direct2D target bitmap associated with the swap chain back buffer and set it as the current target
+	if (d2Device)
+		CreateBitmapRenderTarget();
+
+}
 
 // --------------------------------------------------------
 // This is the main game loop, handling the following:
@@ -434,6 +510,7 @@ HRESULT DXCore::Run()
 	// We'll end up here once we get a WM_QUIT message,
 	// which usually comes from the user closing the window
 	return (HRESULT)msg.wParam;
+
 }
 
 
@@ -519,108 +596,7 @@ void DXCore::UpdateTitleBarStats()
 	fpsTimeElapsed += 1.0f;
 }
 
-void DXCore::DiscardDeviceResources()
-{
-	pRT_->Release();
-	if(pBlackBrush_) pBlackBrush_->Release();
-}
 
-void DXCore::CreateDeviceIndependentResources()
-{
-
-	// create root factory interface for all DirectWrite objects
-	HRESULT	hr = DWriteCreateFactory(
-			DWRITE_FACTORY_TYPE_SHARED,
-			__uuidof(IDWriteFactory),
-			reinterpret_cast<IUnknown**>(&pDWriteFactory_)
-		);
-
-	// initialize text string and store length
-	wszText_ = L"Hello World using DirectWrite!";
-	cTextLength_ = static_cast<UINT32>(wcslen(wszText_));
-
-	// Create IDWriteTextFormat interface to 
-	// specify the font, weight, stretch, style, and locale that will be used to render the text string. 
-	if (SUCCEEDED(hr))
-	{
-		hr = pDWriteFactory_->CreateTextFormat(
-			L"Gabriola",                // Font family name.
-			NULL,                       // Font collection (NULL sets it to use the system font collection).
-			DWRITE_FONT_WEIGHT_REGULAR,
-			DWRITE_FONT_STYLE_NORMAL,
-			DWRITE_FONT_STRETCH_NORMAL,
-			72.0f,
-			L"en-us",
-			&pTextFormat_
-		);
-	}
-	
-	// adjust position with setTextAlignment and SetParagraph Alignment method
-	// Center align (horizontally) the text.
-	if (SUCCEEDED(hr))
-	{
-		hr = pTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
-	}
-
-	if (SUCCEEDED(hr))
-	{
-		hr = pTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
-
-	}
-	
-}
-
-HRESULT DXCore::CreateDeviceResourcesForTextRendering()
-{
-	HRESULT hr = S_OK;
-	RECT rc;
-	GetClientRect(hWnd, &rc);
-
-	D2D1_SIZE_U size = D2D1::SizeU(rc.right - rc.left, rc.bottom - rc.top);
-
-	if (!pRT_)
-	{
-		hr = pRT_->CreateSolidColorBrush(
-				D2D1::ColorF(D2D1::ColorF::Black),
-				&pBlackBrush_
-		);
-	}
-
-	return hr;
-}
-
-HRESULT DXCore::DrawText()
-{
-	RECT rc;
-	GetClientRect(hWnd, &rc);
-	int iDpi = GetDpiForWindow(hWnd);
-	float dpiScaleX_ = MulDiv(INITIALX_96DPI, iDpi, 96);
-	float dpiScaleY_ = MulDiv(INITIALY_96DPI, iDpi, 96);
-
-	// define area for text layout / create algorithm for this
-	D2D1_RECT_F layoutRect = D2D1::RectF(
-		static_cast<FLOAT>(rc.left) / dpiScaleX_,
-		static_cast<FLOAT>(rc.top) / dpiScaleY_,
-		static_cast<FLOAT>(rc.right - rc.left) / dpiScaleX_,
-		static_cast<FLOAT>(rc.bottom - rc.top) / dpiScaleY_
-	);
-
-	// render text to screen
-	/*
-		pRT_->DrawText(
-		wszText_,        // The string to render.
-		cTextLength_,    // The string's length.
-		pTextFormat_,    // The text format.
-		layoutRect,       // The region of the window where the text will be rendered.
-		pBlackBrush_     // The brush used to draw the text.
-	);
-	*/
-
-	if (pRT_)
-	{
-		return S_OK;
-	}
-}
 
 // --------------------------------------------------------
 // Allocates a console window we can print to for debugging

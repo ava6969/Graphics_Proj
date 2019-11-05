@@ -2,6 +2,7 @@
 #include "Vertex.h"
 #include "DXCore.h"
 #include "WICTextureLoader.h"
+#include <sstream>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -116,31 +117,6 @@ void Game::Init()
         5.0f,								// radius
         1.0f								// intensity
     };
-
-	HRESULT hr = CreateDeviceResourcesForTextRendering();
-
-	if (SUCCEEDED(hr))
-	{
-		pRT_->BeginDraw();
-
-		pRT_->SetTransform(D2D1::IdentityMatrix());
-
-		pRT_->Clear(D2D1::ColorF(D2D1::ColorF::White));
-
-		// Call the DrawText method of this class.
-		hr = DrawText();
-
-		if (SUCCEEDED(hr))
-		{
-			hr = pRT_->EndDraw(
-			);
-		}
-	}
-
-	if (FAILED(hr))
-	{
-		DiscardDeviceResources();
-	}
 
 }
 
@@ -274,7 +250,7 @@ void Game::CreateBasicGeometry()
 
     SpawnTreeGrid(40, 40, 8);
 	SpawnLetters(0.0f, -1.0f, 0.0f);
-
+	SpawnLetters(10.0f,-1.0f, 10.0f);
 }
 
 
@@ -341,6 +317,7 @@ void Game::Destroy(Entity* objectToDestroy)
 			Entity* toDelete = entities[count];
 			entities.erase(entities.begin() + count);
 			delete toDelete;
+			--letterCount;
 		}
 		++count;
 	}
@@ -369,11 +346,33 @@ void Game::SpawnLetters(float x, float y, float z)
 	letter->SetTranslation(x, y, z);
 	entities.push_back(letter);
 
+
+	
 }
 
+void Game::DrawAText()
+{
+
+	// create FPS information text layout
+	std::wostringstream outFPS;
+	outFPS.precision(6);
+	outFPS << "Letters Collected : " << letterCount << " of 5" << std::endl;
+
+	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
+
+	 if (textLayoutFPS)
+	 {
+		 d2Context->BeginDraw();
+		 d2Context->DrawTextLayout(D2D1::Point2F(width - 200.0f ,height - 50.0f), textLayoutFPS.Get(), yellowBrush.Get()); // drawtextlayout first param: what point should text be drawn
+		 d2Context->EndDraw();
+
+	 }
+
+}
 
 void Game::DrawUI()
 {
+	// Do Drawing here
 	spriteBatch->Begin();
 
 	// Basic controls
@@ -492,8 +491,7 @@ void Game::Draw(float deltaTime, float totalTime)
             0);    // Offset to add to each index when looking up vertices
     }
 
-	DrawUI();
-
+	DrawAText();
     // Present the back buffer to the user
     //  - Puts the final frame we're drawing into the window so the user can see it
     //  - Do this exactly ONCE PER FRAME (always at the very end of the frame)

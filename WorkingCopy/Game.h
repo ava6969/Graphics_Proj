@@ -15,7 +15,6 @@
 
 
 
-
 class Game 
 	: public DXCore
 {
@@ -43,6 +42,7 @@ private:
 	void CreateMatrices();
 	void CreateBasicGeometry();
 	void DrawUI();
+	void DrawAText();
 	void SpawnLetters(float x,float y ,float z);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(Entity* objectToDestroy);
