@@ -1,7 +1,8 @@
 #pragma once
 
-#include "DXCore.h"
+
 #include <DirectXMath.h>
+
 class Collider
 {
 public:

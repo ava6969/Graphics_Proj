@@ -12,11 +12,11 @@ Entity::Entity()
 	scale = XMFLOAT3(1, 1, 1);
 	// set the initial rotation quaternion
 	XMStoreFloat4(&rotation, XMQuaternionIdentity());
-	mesh = new Mesh();
+	mesh = make_shared<Mesh>();
 	isDirty = true;
 }
 
-Entity::Entity(Mesh* m, Material* mat, float rad)
+Entity::Entity(std::shared_ptr<Mesh> m, std::shared_ptr < Material> mat, float rad)
 {
 
 	// set the initial world matrix
@@ -129,7 +129,7 @@ int Entity::GetIndexCount()
 	return mesh->GetIndexCount();
 }
 
-Material* Entity::GetMaterial()
+shared_ptr<Material> Entity::GetMaterial()
 {
 	return material;
 }

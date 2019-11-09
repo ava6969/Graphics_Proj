@@ -18,7 +18,7 @@ public:
 	DirectX::XMFLOAT3 GetPosition();
 	void SetPosition(DirectX::XMFLOAT3 pos);
 	DirectX::XMFLOAT3 GetDirection();
-	Collider* GetCollider();
+	Collider * GetCollider();
 	bool GetDebug();
 
 	void Update(float deltaTime);

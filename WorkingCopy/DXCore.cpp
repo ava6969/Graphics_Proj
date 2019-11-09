@@ -287,7 +287,6 @@ HRESULT DXCore::InitDirectX()
 	InitDirect2D();
 	CreateBitmapRenderTarget();
 	InitializeTextFormats();
-
 	// Return the "everything is ok" HRESULT value
 	return hr;
 }

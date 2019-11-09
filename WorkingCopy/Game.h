@@ -9,8 +9,7 @@
 #include "Material.h"
 #include "Lights.h"
 #include "CollisionManager.h"
-#include "SpriteFont.h"
-#include "SpriteBatch.h"
+#include "GameFactory.h"
 
 
 
@@ -22,7 +21,7 @@ class Game
 public:
 	Game(HINSTANCE hInstance);
 	~Game();
-
+	shared_ptr<GameFactory> gameFactory;
 	// Overridden setup and game loop methods, which
 	// will be called automatically
 	void Init();
@@ -41,12 +40,11 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
-	void DrawUI();
 	void DrawAText();
 	void SpawnLetters(float x,float y ,float z);
     void SpawnTreeGrid(int x, int y, int step);
-	void Destroy(Entity* objectToDestroy);
-	void CheckLetterCollected();
+	void Destroy(shared_ptr<Entity> objectToDestroy);
+
 
 	// Letter Stuffs
 	int letterCount;
@@ -66,37 +64,24 @@ private:
 
 
 	// array of meshes to load / draw
-	std::vector<Mesh*> meshes;
-	std::vector<Entity*> entities;
-
-    std::vector<Entity*> trees;
-	std::vector<Entity*> letters;
-
-	// Text & ui stuffs
-	DirectX::SpriteFont* arial;
-	DirectX::SpriteBatch* spriteBatch;
+	vector<shared_ptr<Entity> > entities;
 
 	float frameCounter;
 
 	// Camera pointer
-	Camera* camera;
+	shared_ptr<Camera> camera;
 	bool cameraCanMove;
 
 	// materials
-	Material* defaultMaterial;
-	Material* floor;
+	shared_ptr<Material> defaultMaterial;
+	shared_ptr<Material> floor;
 
-	CollisionManager* collisionManager;
+	shared_ptr<CollisionManager> collisionManager;
 
 	// lights
 	SpotLight dirLight;
 	PointLight light2;
 
-	// textures
-	ID3D11ShaderResourceView* textureSRV;
-	ID3D11ShaderResourceView* textureNSRV;
-	ID3D11ShaderResourceView* floorSRV;
-	ID3D11ShaderResourceView* floorNSRV;
-	ID3D11SamplerState* samplerOptions;
+
 };
 

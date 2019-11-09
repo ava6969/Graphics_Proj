@@ -11,7 +11,7 @@
 #include <wrl/client.h>
 
 
-
+using namespace std;
 using namespace Microsoft::WRL;
 #define INITIALX_96DPI 50 
 #define INITIALY_96DPI 50 
@@ -83,6 +83,7 @@ protected:
 	ID3D11Device*			device;
 	ID3D11Debug*			m_d3dDebug;
 	ID3D11DeviceContext*	context;
+
 
 	// Direct 2dstuffs
 	ComPtr<ID2D1Factory2> factory;			// pointer to all drect2d factory

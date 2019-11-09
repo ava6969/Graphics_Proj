@@ -23,21 +23,22 @@ Game::Game(HINSTANCE hInstance)
         720,			   // Height of the window's client area
         true)			   // Show extra stats (fps) in title bar?
 {
+	
     // Initialize fields
     vertexShader = 0;
     pixelShader = 0;
     frameCounter = 0;
     prevMousePos = { 0,0 };
     cameraCanMove = false;
-    textureSRV = 0;
+
 
 #if defined(DEBUG) || defined(_DEBUG)
     // Do we want a console window?  Probably only in debug mode
     CreateConsoleWindow(500, 120, 32, 120);
     printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
-    camera = new Camera((float)width, (float)height);
-    collisionManager = new CollisionManager(camera);
+    camera = gameFactory->CreateCamera((float)width, (float)height);
+    collisionManager = gameFactory->CreateCollisionManager(camera);
 }
 
 // --------------------------------------------------------
@@ -52,28 +53,7 @@ Game::~Game()
     delete vertexShader;
     delete pixelShader;
 
-    for (int i = 0; i < entities.size(); i++)
-    {
-        delete entities[i];
-    }
 
-    for (int i = 0; i < meshes.size(); i++)
-    {
-        delete meshes[i];
-    }
-
-    delete camera;
-    delete defaultMaterial;
-    delete floor;
-    delete collisionManager;
-    textureSRV->Release();
-    textureNSRV->Release();
-    floorSRV->Release();
-    floorNSRV->Release();
-    samplerOptions->Release();
-
-	delete arial;
-	delete spriteBatch;
 }
 
 // --------------------------------------------------------
@@ -85,13 +65,10 @@ void Game::Init()
     // Helper methods for loading shaders, creating some basic
     // geometry to draw and some simple camera matrices.
     //  - You'll be expanding and/or replacing these later
-
+	gameFactory = make_shared<GameFactory>(device, context);
     LoadShaders();
     //CreateMatrices();
     CreateBasicGeometry();
-
-	spriteBatch = new SpriteBatch(context);
-	arial = new SpriteFont(device, L"../../Assets/Textures/arial.spritefont");
 
 	letterCount = 5;
 
@@ -134,40 +111,9 @@ void Game::LoadShaders()
     pixelShader = new SimplePixelShader(device, context);
     pixelShader->LoadShaderFile(L"PixelShader.cso");
 
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	defaultMaterial = gameFactory->CreateMaterial(L"Textures/Rock.tif", L"Textures/RockN.tif", vertexShader, pixelShader);
+	floor = gameFactory->CreateMaterial(L"Textures/Brick.tif", L"Textures/BrickN.tif", vertexShader, pixelShader);
 
-    device->CreateSamplerState(&sampDesc, &samplerOptions);
-
-    // load the textures and bump maps
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/Rock.tif",
-        //L"Textures/Brick.tif",
-        0,
-        &textureSRV
-    );
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/RockN.tif",
-        //L"Textures/BrickN.tif",
-        0,
-        &textureNSRV);
-
-    CreateWICTextureFromFile(device, context, L"Textures/Brick.tif", 0, &floorSRV);
-    CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
-
-
-    // make the material
-    defaultMaterial = new Material(vertexShader, pixelShader, textureSRV, textureNSRV, samplerOptions, 256.0);
-    floor = new Material(vertexShader, pixelShader, floorSRV, floorNSRV, samplerOptions, 256.0);
 }
 
 
@@ -221,35 +167,11 @@ void Game::CreateMatrices()
 void Game::CreateBasicGeometry()
 {
 
-	/*
-	const char* filename = "Models/sphere.obj";
-	Mesh* mesh1 = new Mesh(filename, device);
-	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
-	meshes.push_back(mesh1);
-	entities.push_back(e1);
-
-	collisionManager->addCollider(e1);
-	*/
-
-
-    Vertex vertices[] =
-    {
-        { XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
-        { XMFLOAT3(+50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,10) },
-        { XMFLOAT3(-50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,10) },
-        { XMFLOAT3(-50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,0) }
-    };
-
-    //Floor
-    unsigned int indices[] = { 2,1,0,2,0,3 };
-
-    Mesh* groundMesh = new Mesh(vertices, 4, indices, 6, device);
-    Entity* groundEnt = new Entity(groundMesh, floor, 0.0f);
-    meshes.push_back(groundMesh);
+	auto groundEnt = gameFactory->CreateFloor(floor, 0.0f);
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
-	SpawnLetters(0.0f, -1.0f, 0.0f);
+	SpawnLetters(0.0f, -1.0f, 30.0f);
 	SpawnLetters(10.0f,-1.0f, 10.0f);
 }
 
@@ -265,21 +187,16 @@ int steps - intervals between range [-x,x] and [-z,z] to spawn trees
 */
 void Game::SpawnTreeGrid(int x, int y, int step)
 {
-    float spawnWeight = 1.15;
+    float spawnWeight = 1.2;
     float spawnStrenght = 1;
     float spawnChance = 40.0f;
-
-    const char* treeFileName = "Models/DeadTree.obj";
-    Mesh* treeMesh = new Mesh(treeFileName, device);
-    meshes.push_back(treeMesh);
 	int count = 5;
 
     for (int i = -x; i <= x; i += step) {
         for (int j = -y; j <= y; j += step) {
             float spawnSeed = (rand() % 100 + 1) / spawnStrenght;
             if (spawnSeed <= spawnChance) {
-
-                Entity* tree = new Entity(treeMesh, defaultMaterial, 1.0f);
+				auto tree = gameFactory->CreateTree(defaultMaterial, 1.0f);
 				tree->SetTag("tree");
                 spawnStrenght = 1;
                 float offsetX = (rand() % 10 + 1) / 10.0f;
@@ -297,14 +214,13 @@ void Game::SpawnTreeGrid(int x, int y, int step)
                 spawnStrenght *= spawnWeight;
             }
 
-
         }
     }
 
 
 }
 
-void Game::Destroy(Entity* objectToDestroy)
+void Game::Destroy(shared_ptr<Entity> objectToDestroy)
 {
 	// gets a pointer to an object and compares position of the resource to an object in the entity vector, removes object at that position
 	int count = 0;
@@ -314,19 +230,15 @@ void Game::Destroy(Entity* objectToDestroy)
 			objectToDestroy->GetPosition().y == itr->GetPosition().y &&
 			objectToDestroy->GetPosition().z == itr->GetPosition().z)
 		{
-			Entity* toDelete = entities[count];
+			auto toDelete = entities[count];
 			entities.erase(entities.begin() + count);
-			delete toDelete;
 			--letterCount;
 		}
 		++count;
 	}
 }
 
-void Game::CheckLetterCollected()
-{
-	//for (int i = )
-}
+
 
 
 void Game::SpawnLetters(float x, float y, float z)
@@ -334,11 +246,8 @@ void Game::SpawnLetters(float x, float y, float z)
 
 	const float y_axis = 20.0f;
 	// create a mesh for letters and push to vector of meshes
-	const char* file = "Models/cube.obj";
-	Mesh* letterMesh = new Mesh(file, device);
-	meshes.push_back(letterMesh);
 
-	Entity* letter = new Entity(letterMesh, defaultMaterial, 1.0f);
+	auto letter = gameFactory->CreateLetter(defaultMaterial, 1.0f);
 	letter->SetTag("letter");
 	collisionManager->addCollider(letter);
 	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.02f);
@@ -346,8 +255,6 @@ void Game::SpawnLetters(float x, float y, float z)
 	letter->SetTranslation(x, y, z);
 	entities.push_back(letter);
 
-
-	
 }
 
 void Game::DrawAText()
@@ -368,25 +275,6 @@ void Game::DrawAText()
 
 	 }
 
-}
-
-void Game::DrawUI()
-{
-	// Do Drawing here
-	spriteBatch->Begin();
-
-	// Basic controls
-	float h_offset = 50.0f;
-	float w_offset = 200.0f;
-
-	arial->DrawString(spriteBatch, L"Letters remaining - ", XMVectorSet(width - w_offset, height - h_offset, 0, 0));
-	//arial->DrawString(spriteBatch, reinterpret_cast<const char*>(letterCount) , XMVectorSet(width - w_offset + 23 , height - h_offset, 0, 0));
-	arial->DrawString(spriteBatch, L" of 5", XMVectorSet(width - w_offset - 24, height - h_offset, 0, 0));
-	spriteBatch->End();
-
-	// Reset render states, since sprite batch changes these!
-	context->OMSetBlendState(0, 0, 0xFFFFFFFF);
-	context->OMSetDepthStencilState(0, 0);
 }
 
 

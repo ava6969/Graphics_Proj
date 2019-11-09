@@ -48,6 +48,9 @@
     <ClCompile Include="CollisionManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GameFactory.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Vertex.h">
@@ -83,7 +86,7 @@
     <ClInclude Include="CollisionManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\Dewe\Downloads\directWrite\expected.h">
+    <ClInclude Include="GameFactory.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
