@@ -69,8 +69,8 @@ Game::~Game()
 	delete collisionManager;
 	//textureSRV->Release();
 	//textureNSRV->Release();
-	floorSRV->Release();
-	floorNSRV->Release();
+	//floorSRV->Release();
+	//floorNSRV->Release();
 	/*copperMetallic->Release();
 	copperRough->Release();*/
 	samplerOptions->Release();
@@ -140,7 +140,12 @@ void Game::LoadShaders()
 
 	device->CreateSamplerState(&sampDesc, &samplerOptions);
 
-	defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
+	defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.02f, 0.02f, 0.02f));
+	CreateWICTextureFromFile(device, context, L"Textures/ContainerA.png", 0, &defaultMaterial->texture);
+	CreateWICTextureFromFile(device, context, L"Textures/ContainerN.png", 0, &defaultMaterial->normalMap);
+	CreateWICTextureFromFile(device, context, L"Textures/ContainerM.png", 0, &defaultMaterial->metalness);
+	CreateWICTextureFromFile(device, context, L"Textures/ContainerR.png", 0, &defaultMaterial->roughness);
+	/*defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
 	paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.07f,0.07f,0.07f));
 	brick = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.04f, 0.04f, 0.04f));
 	// load the textures and bump maps
@@ -170,7 +175,7 @@ void Game::LoadShaders()
 	CreateWICTextureFromFile(device, context, L"Textures/Brick2.tif", 0, &brick->texture);
 	CreateWICTextureFromFile(device, context, L"Textures/Brick2N.tif", 0, &brick->normalMap);
 	CreateWICTextureFromFile(device, context, L"Textures/Brick2R.tif", 0, &brick->roughness);
-	CreateWICTextureFromFile(device, context, L"Textures/NonMetal.png", 0, &brick->metalness);
+	CreateWICTextureFromFile(device, context, L"Textures/NonMetal.png", 0, &brick->metalness);*/
 }
 
 
@@ -223,7 +228,15 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	const char* filename = "Models/sphere.obj";
+	const char* filename = "Models/Container.obj";
+	Mesh* mesh1 = new Mesh(filename, device);
+	Entity* e1 = new Entity(mesh1, defaultMaterial,XMFLOAT2(2.4f, 4.5f));
+	meshes.push_back(mesh1);
+	entities.push_back(e1);
+	e1->SetTranslation(XMFLOAT3(3.0f, 0.0f, 3.0f));
+	collisionManager->addCollider(e1->GetCollider());
+	//e1->SetScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
+	/*const char* filename = "Models/sphere.obj";
 	Mesh* mesh1 = new Mesh(filename, device);
 	Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
 	meshes.push_back(mesh1);
@@ -233,7 +246,7 @@ void Game::CreateBasicGeometry()
 	e2->SetTranslation(XMFLOAT3(1.0f, 0.0f, 0.0f));
 	Entity* e3 = new Entity(mesh1, brick, 1.0f);
 	entities.push_back(e3);
-	e3->SetTranslation(XMFLOAT3(2.0f, 0.0f, 0.0f));
+	e3->SetTranslation(XMFLOAT3(2.0f, 0.0f, 0.0f));*/
 
 	//collisionManager->addCollider(e1->GetCollider());
 

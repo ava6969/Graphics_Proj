@@ -13,6 +13,7 @@ class Entity
 public:
 	Entity();
 	Entity(Mesh* m, Material* mat, float rad);
+	Entity(Mesh* m, Material* mat, DirectX::XMFLOAT2 s);
 	~Entity();
 	
 	DirectX::XMFLOAT4X4 GetWorldMatrix();

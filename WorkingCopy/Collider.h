@@ -7,11 +7,14 @@ class Collider
 public:
 	Collider();
 	Collider(float r);
+	Collider(DirectX::XMFLOAT2 s);
 	~Collider();
 
 	// getters
 	float GetRadius();
 	DirectX::XMFLOAT2 GetCenter();
+	int GetType();
+	DirectX::XMFLOAT2 GetSize();
 
 	// setter
 	void SetCenter(DirectX::XMFLOAT2 c);
@@ -20,5 +23,7 @@ public:
 private:
 	float radius;
 	DirectX::XMFLOAT2 center;
+	int type; // 0 = circle, 1 = rectangle
+	DirectX::XMFLOAT2 size; // x = x, y = z
 };
 

@@ -31,6 +31,7 @@ public:
 	// detection method
 	bool CircleToCircleCollision(Collider* col1, Collider* col2);
 	bool CircleToCircleCollision(Collider* col1, Collider* col2, float * radSum, float* distSqr);
+	bool CircleToSquareCollision(Collider* col1, Collider* col2);
 
 	// collision resolution
 	void ResolvePlayerCollision(Collider* other);

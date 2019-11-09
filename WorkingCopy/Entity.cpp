@@ -40,6 +40,28 @@ Entity::Entity(Mesh* m, Material* mat, float rad)
 	collider = new Collider(rad);
 }
 
+Entity::Entity(Mesh* m, Material* mat, DirectX::XMFLOAT2 s)
+{
+	// set the initial world matrix
+	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
+
+	// set initial scale and position
+	position = XMFLOAT3(0, 0, 0);
+	scale = XMFLOAT3(1, 1, 1);
+
+	// set the initial rotation quaternion
+	XMStoreFloat4(&rotation, XMQuaternionIdentity());
+
+	// set the mesh pointer
+	mesh = m;
+
+	isDirty = true;
+
+	material = mat;
+
+	collider = new Collider(s);
+}
+
 Entity::~Entity()
 {
 	delete collider;
