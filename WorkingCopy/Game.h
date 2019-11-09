@@ -20,7 +20,6 @@ class Game
 
 public:
 	Game(HINSTANCE hInstance);
-	~Game();
 	shared_ptr<GameFactory> gameFactory;
 	// Overridden setup and game loop methods, which
 	// will be called automatically
@@ -50,8 +49,10 @@ private:
 	int letterCount;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
-	SimpleVertexShader* vertexShader;
-	SimplePixelShader* pixelShader;
+	shared_ptr < SimpleVertexShader > vertexShader;
+	shared_ptr< SimplePixelShader> pixelShader;
+    shared_ptr<SimpleVertexShader> skyVS;
+	shared_ptr<SimplePixelShader> skyPS;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -75,8 +76,9 @@ private:
 	// materials
 	shared_ptr<Material> defaultMaterial;
 	shared_ptr<Material> floor;
-
+	shared_ptr<Material> sky;
 	shared_ptr<CollisionManager> collisionManager;
+
 
 	// lights
 	SpotLight dirLight;

@@ -54,12 +54,11 @@ shared_ptr<Camera> GameFactory::CreateCamera(float width, float height)
 }
 
 
-shared_ptr<Material> GameFactory::CreateMaterial(const wchar_t* file, const wchar_t* fileN, SimpleVertexShader* vShader, SimplePixelShader* pShader)
+shared_ptr<Material> GameFactory::CreateMaterial(const wchar_t* file, const wchar_t* fileN, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader)
 {
-	ID3D11ShaderResourceView* SRV;
-	ID3D11ShaderResourceView* NSRV;
-	ID3D11SamplerState* samplerOptions;
-
+	ComPtr<ID3D11ShaderResourceView> SRV;
+	ComPtr<ID3D11ShaderResourceView> NSRV;
+	ComPtr<ID3D11SamplerState> samplerOptions;
 	D3D11_SAMPLER_DESC sampDesc = {};
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -88,4 +87,44 @@ shared_ptr<Material> GameFactory::CreateMaterial(const wchar_t* file, const wcha
 
 	// make the material
 	return make_shared<Material>(vShader, pShader, SRV, NSRV, samplerOptions, 256.0);
+}
+
+shared_ptr<Material> GameFactory::CreateSkyBox(const wchar_t* ddsFile, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader)
+{
+	ComPtr<ID3D11ShaderResourceView> skySRV;
+	ComPtr<ID3D11SamplerState> samplerOptions;
+	// Sky stuff
+	ComPtr<ID3D11RasterizerState> skyRastState;
+	ComPtr<ID3D11DepthStencilState> skyDepthState;
+
+	// Load the skybox and give us an SRV that
+	// points to a Texture Cube resource
+	CreateDDSTextureFromFile(device, ddsFile, 0, &skySRV);
+
+	// Create a sampler state
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;//D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.MaxAnisotropy = 16;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sampDesc, &samplerOptions);
+
+	// Sky resources
+	D3D11_RASTERIZER_DESC rd = {};
+	rd.FillMode = D3D11_FILL_SOLID;
+	rd.CullMode = D3D11_CULL_FRONT;
+	device->CreateRasterizerState(&rd, &skyRastState);
+
+	D3D11_DEPTH_STENCIL_DESC ds = {};
+	ds.DepthEnable = true;
+	ds.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	ds.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+	device->CreateDepthStencilState(&ds, &skyDepthState);
+
+	return make_shared<Material>(vShader, pShader, skySRV, samplerOptions, skyRastState, skyDepthState);
+
 }

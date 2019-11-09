@@ -152,9 +152,9 @@ void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj,
 	material->GetPixelShader()->SetData("light", light, sizeof(SpotLight));
 	material->GetPixelShader()->SetData("light2", light2, sizeof(PointLight));
 	material->GetPixelShader()->SetFloat("shininess", material->GetShininess());
-	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture());
-	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap());
-	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler());
+	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture().Get());
+	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap().Get());
+	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler().Get());
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU

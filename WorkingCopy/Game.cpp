@@ -41,20 +41,7 @@ Game::Game(HINSTANCE hInstance)
     collisionManager = gameFactory->CreateCollisionManager(camera);
 }
 
-// --------------------------------------------------------
-// Destructor - Clean up anything our game has created:
-//  - Release all DirectX objects created here
-//  - Delete any objects to prevent memory leaks
-// --------------------------------------------------------
-Game::~Game()
-{
-    // Delete our simple shader objects, which
-    // will clean up their own internal DirectX stuff
-    delete vertexShader;
-    delete pixelShader;
 
-
-}
 
 // --------------------------------------------------------
 // Called once per program, after DirectX and the window
@@ -105,14 +92,21 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
-    vertexShader = new SimpleVertexShader(device, context);
+    vertexShader = make_shared < SimpleVertexShader >(device, context);
     vertexShader->LoadShaderFile(L"VertexShader.cso");
 
-    pixelShader = new SimplePixelShader(device, context);
+    pixelShader = make_shared < SimplePixelShader >(device, context);
     pixelShader->LoadShaderFile(L"PixelShader.cso");
+
+	skyVS = make_shared< SimpleVertexShader >(device, context);
+	skyVS->LoadShaderFile(L"VSSky.cso");
+
+	skyPS = make_shared< SimplePixelShader >(device, context);
+	skyPS->LoadShaderFile(L"PSSky.cso");
 
 	defaultMaterial = gameFactory->CreateMaterial(L"Textures/Rock.tif", L"Textures/RockN.tif", vertexShader, pixelShader);
 	floor = gameFactory->CreateMaterial(L"Textures/Brick.tif", L"Textures/BrickN.tif", vertexShader, pixelShader);
+	sky = gameFactory->CreateSkyBox(L"Textures/secunda_full.dds", skyVS, skyPS);
 
 }
 
@@ -348,6 +342,11 @@ void Game::Draw(float deltaTime, float totalTime)
         D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
         1.0f,
         0);
+	// Set buffers in the input assembler
+	//  - Do this ONCE PER OBJECT you're drawing, since each object might
+	//    have different geometry.
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
 
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
@@ -355,11 +354,6 @@ void Game::Draw(float deltaTime, float totalTime)
         entities[i]->GetMaterial()->GetPixelShader()->SetFloat3("cameraPos", camera->GetPosition());
         entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &dirLight, &light2);
 
-        // Set buffers in the input assembler
-        //  - Do this ONCE PER OBJECT you're drawing, since each object might
-        //    have different geometry.
-        UINT stride = sizeof(Vertex);
-        UINT offset = 0;
 
         // get a temp variable to access the buffer
         ID3D11Buffer* vTemp = entities[i]->GetVertexBuffer();
@@ -378,6 +372,40 @@ void Game::Draw(float deltaTime, float totalTime)
             0,     // Offset to the first index we want to use
             0);    // Offset to add to each index when looking up vertices
     }
+
+	// === Sky box drawing ======================
+// Draw the sky AFTER everything else to prevent overdraw
+
+// Set up sky states
+	context->RSSetState(sky->GetSkyRastState().Get());
+	context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
+
+	// Grab the data from the box mesh
+	auto skyMesh = gameFactory->CreateCubeMesh();
+	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
+	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
+
+	// Set buffers in the input assembler
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+	
+	// Set up the new sky shaders
+	skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
+	skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+
+	skyVS->CopyAllBufferData();
+	skyVS->SetShader();
+
+	skyPS->SetShader();
+	skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get() );
+	skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get() );
+
+	// Finally do the actual drawing
+	context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
+
+	// Reset states for next frame
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
 
 	DrawAText();
     // Present the back buffer to the user
