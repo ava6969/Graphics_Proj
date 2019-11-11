@@ -308,9 +308,11 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 
                 offsetX *= step / 2;
                 offsetZ *= step / 3;
-                collisionManager->addCollider(tree->GetCollider());
+                
 
                 tree->SetTranslation(i + offsetX, -3, j + offsetZ);
+
+                collisionManager->addCollider(tree->GetCollider());
                 entities.push_back(tree);
 
             }

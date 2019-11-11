@@ -4,23 +4,43 @@
 #include "Collider.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "Quadtree.h"
 #include <DirectXMath.h>
 
 class CollisionManager
 {
+
+private:
+    
+    std::vector<Collider*> collidableObjects;
+    Camera* player;
+
 public:
+    Quadtree* quadtree;
 	CollisionManager();
 	CollisionManager(Camera* cam);
 	~CollisionManager();
 
 	void addCollider(Entity ent) {
-		if (ent.GetCollider() != NULL) {
-			collidableObjects.push_back(ent.GetCollider());
-		}
+        if (ent.GetCollider() != NULL) {
+            collidableObjects.push_back(ent.GetCollider());
+            if (quadtree != NULL) {
+                quadtree->CreateQuadtree(collidableObjects);
+            }
+        }
 	}
 	void addCollider(Collider* col) {
 
 		collidableObjects.push_back(col);
+        if (quadtree != NULL) {
+            if (collidableObjects.size() == 1) {
+                quadtree->CreateQuadtree(collidableObjects);
+            }
+            else {
+                quadtree->addToTree(col);
+            }
+            
+        }
 	}
 
 	bool checkOverlap(Entity ent);
@@ -34,8 +54,6 @@ public:
 
 	// collision resolution
 	void ResolvePlayerCollision(Collider* other);
-private:
-	std::vector<Collider*> collidableObjects;
-	Camera* player;
+
 };
 

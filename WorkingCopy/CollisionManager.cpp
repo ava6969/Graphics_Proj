@@ -2,16 +2,18 @@
 using namespace DirectX;
 CollisionManager::CollisionManager()
 {
-
+    quadtree = new Quadtree();
 }
 
 CollisionManager::CollisionManager(Camera* cam)
 {
 	player = cam;
+    quadtree = new Quadtree();
 }
 
 CollisionManager::~CollisionManager()
 {
+    delete quadtree;
 }
 
 bool CollisionManager::checkOverlap(Entity ent)
@@ -84,12 +86,15 @@ void CollisionManager::HandlePlayerCollisions()
 {
 	if (player->GetDebug()) return;
 
-	for (int i = 0; i < collidableObjects.size(); i++)
+    std::vector<Collider* > treeColliders = quadtree->GetCollidableObjects(player->GetCollider());
+
+
+	for (int i = 0; i < treeColliders.size(); i++)
 	{
 
-		if (CircleToCircleCollision(player->GetCollider(), collidableObjects[i]))
+		if (CircleToCircleCollision(player->GetCollider(), treeColliders[i]))
 		{
-			ResolvePlayerCollision(collidableObjects[i]);
+			ResolvePlayerCollision(treeColliders[i]);
 		}
 	}
 }

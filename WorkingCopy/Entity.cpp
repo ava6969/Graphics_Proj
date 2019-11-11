@@ -53,6 +53,8 @@ DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
 void Entity::SetTranslation(DirectX::XMFLOAT3 tran)
 {
 	position = tran;
+    collider->SetCenter(XMFLOAT2(position.x, position.z));
+
 	SetDirtyMatrix();
 }
 
@@ -80,6 +82,7 @@ void Entity::Move(DirectX::XMFLOAT3 amount)
 	// add them
 	// store back into the position float
 	XMStoreFloat3(&position, XMVectorAdd(XMLoadFloat3(&position), XMLoadFloat3(&amount)));
+    collider->SetCenter(XMFLOAT2(position.x, position.z));
 
 	SetDirtyMatrix();
 }
