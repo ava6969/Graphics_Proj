@@ -74,38 +74,32 @@ private:
 	bool cameraCanMove;
 
 	// materials
-<<<<<<< HEAD
-	Material* defaultMaterial;
-	Material* floor;
-	Material* paint;
-	Material* brick;
-=======
+	// TODO chnage to smart pointers
+	//Material* defaultMaterial;
+	//Material* floor;
+	//Material* paint;
+	//Material* brick;
+
 	shared_ptr<Material> defaultMaterial;
 	shared_ptr<Material> floor;
 	shared_ptr<Material> sky;
+	shared_ptr<Material> paint;
+	shared_ptr<Material> brick;
 	shared_ptr<CollisionManager> collisionManager;
->>>>>>> DeweBranch
 
 
 	// lights
 	SpotLight flashlight;
 	DirectionalLight light2;
 
-<<<<<<< HEAD
+	// TO DO Chhange to ComPtr and game Factory
 	// textures
-	ID3D11ShaderResourceView* textureSRV;
-	ID3D11ShaderResourceView* textureNSRV;
-	ID3D11ShaderResourceView* copperRough;
-	ID3D11ShaderResourceView* copperMetallic;
-	ID3D11ShaderResourceView* paintAlbedo;
-	ID3D11ShaderResourceView* paintNormal;
-	ID3D11ShaderResourceView* paintRough;
-	ID3D11ShaderResourceView* paintMetallic;
-	ID3D11ShaderResourceView* floorSRV;
-	ID3D11ShaderResourceView* floorNSRV;
-	ID3D11SamplerState* samplerOptions;
-=======
+	ComPtr<ID3D11ShaderResourceView> copperRough;
+	ComPtr<ID3D11ShaderResourceView> copperMetallic;
+	ComPtr<ID3D11ShaderResourceView> paintAlbedo;
+	ComPtr<ID3D11ShaderResourceView> paintNormal;
+	ComPtr<ID3D11ShaderResourceView> paintRough;
+	ComPtr<ID3D11ShaderResourceView> paintMetallic;
 
->>>>>>> DeweBranch
 };
 

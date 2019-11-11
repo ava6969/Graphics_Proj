@@ -139,7 +139,9 @@ Collider* Entity::GetCollider()
 	return collider;
 }
 
-void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2)
+//void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight const& light, PointLight const& light2);
+
+void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight * light, DirectionalLight * light2)
 {
 	// Send data to shader variables
 		//  - Do this ONCE PER OBJECT you're drawing
@@ -152,18 +154,13 @@ void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj,
 	material->GetPixelShader()->SetData("light", light, sizeof(SpotLight));
 	material->GetPixelShader()->SetData("light2", light2, sizeof(DirectionalLight));
 	material->GetPixelShader()->SetFloat("shininess", material->GetShininess());
-<<<<<<< HEAD
 	material->GetPixelShader()->SetFloat3("specularColor", material->GetSpecularColor());
-	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture());
-	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap());
-	material->GetPixelShader()->SetShaderResourceView("roughnessMap", material->GetRoughness());
-	material->GetPixelShader()->SetShaderResourceView("metalnessMap", material->GetMetalness());
-	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler());
-=======
+	material->GetPixelShader()->SetShaderResourceView("roughnessMap", material->GetRoughness().Get());
+	material->GetPixelShader()->SetShaderResourceView("metalnessMap", material->GetMetalness().Get());
 	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture().Get());
 	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap().Get());
 	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler().Get());
->>>>>>> DeweBranch
+
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU

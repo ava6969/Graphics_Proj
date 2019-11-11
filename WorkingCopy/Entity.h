@@ -37,15 +37,12 @@ public:
 	int GetIndexCount();
 	shared_ptr<Material> GetMaterial();
 	Collider* GetCollider();
-<<<<<<< HEAD
 	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2);
-=======
+	//void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight const& light, PointLight const& light2);
+	inline const char* getTag() { return tag; }
 	inline DirectX::XMFLOAT3 GetPosition() const { return position; }
 
-	inline const char* getTag() { return tag; }
-	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
 
->>>>>>> DeweBranch
 private:
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT3 position;

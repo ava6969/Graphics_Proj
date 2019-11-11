@@ -41,29 +41,6 @@ Game::Game(HINSTANCE hInstance)
     collisionManager = gameFactory->CreateCollisionManager(camera);
 }
 
-
-<<<<<<< HEAD
-    delete camera;
-    delete defaultMaterial;
-    delete floor;
-    delete paint;
-    delete brick;
-    delete collisionManager;
-    //textureSRV->Release();
-    //textureNSRV->Release();
-    floorSRV->Release();
-    floorNSRV->Release();
-    /*copperMetallic->Release();
-    copperRough->Release();*/
-    samplerOptions->Release();
-    /*paintAlbedo->Release();
-    paintNormal->Release();
-    paintRough->Release();
-    paintMetallic->Release();*/
-}
-=======
->>>>>>> DeweBranch
-
 // --------------------------------------------------------
 // Called once per program, after DirectX and the window
 // are initialized but before the game loop.
@@ -95,6 +72,7 @@ void Game::Init()
         30.0f,								// length
         1.0f								// intensity
     };
+
     light2 = {
         XMFLOAT4(0.00f, 0.00f, 0.00f, 1.0f),
         XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
@@ -116,80 +94,42 @@ void Game::LoadShaders()
 
     pixelShader = make_shared < SimplePixelShader >(device, context);
     pixelShader->LoadShaderFile(L"PixelShader.cso");
+	
 
-<<<<<<< HEAD
-    D3D11_SAMPLER_DESC sampDesc = {};
-    sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-    sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-    sampDesc.MinLOD = 0;
-    sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    device->CreateSamplerState(&sampDesc, &samplerOptions);
+	defaultMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
+	paint = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.07f, 0.07f, 0.07f));
+	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
 
-    // load the textures and bump maps
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/Rock.tif",
-        //L"Textures/Brick.tif",
-        0,
-        &textureSRV
-    );
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/RockN.tif",
-        //L"Textures/BrickN.tif",
-        0,
-        &textureNSRV);
+	// load the textures and bump maps
 
-    CreateWICTextureFromFile(device, context, L"Textures/Brick.tif", 0, &floorSRV);
-    CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
 
-    defaultMaterial = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
-    paint = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.07f, 0.07f, 0.07f));
-    brick = new Material(vertexShader, pixelShader, samplerOptions, XMFLOAT3(0.04f, 0.04f, 0.04f));
-    // load the textures and bump maps
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/Copper.tif",
-        //L"Textures/Brick.tif",
-        0,
-        &defaultMaterial->texture
-    );
-    CreateWICTextureFromFile(
-        device,
-        context,
-        L"Textures/CopperN.tif",
-        //L"Textures/BrickN.tif",
-        0,
-        &defaultMaterial->normalMap);
-    CreateWICTextureFromFile(device, context, L"Textures/CopperR.tif", 0, &defaultMaterial->roughness);
-    CreateWICTextureFromFile(device, context, L"Textures/CopperM.tif", 0, &defaultMaterial->metalness);
-    CreateWICTextureFromFile(device, context, L"Textures/Brick.tif", 0, &floorSRV);
-    CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
-    CreateWICTextureFromFile(device, context, L"Textures/Paint.tif", 0, &paint->texture);
-    CreateWICTextureFromFile(device, context, L"Textures/PaintN.tif", 0, &paint->normalMap);
-    CreateWICTextureFromFile(device, context, L"Textures/PaintR.tif", 0, &paint->roughness);
-    CreateWICTextureFromFile(device, context, L"Textures/PaintM.tif", 0, &paint->metalness);
-    CreateWICTextureFromFile(device, context, L"Textures/Brick2.tif", 0, &brick->texture);
-    CreateWICTextureFromFile(device, context, L"Textures/Brick2N.tif", 0, &brick->normalMap);
-    CreateWICTextureFromFile(device, context, L"Textures/Brick2R.tif", 0, &brick->roughness);
-    CreateWICTextureFromFile(device, context, L"Textures/NonMetal.png", 0, &brick->metalness);
-=======
+	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
+	defaultMaterial->AddTextureProperties(L"Textures/CopperN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	defaultMaterial->AddTextureProperties(L"Textures/CopperR.tif", MATERIAL_FEATURES::ROUGHNESS);
+	defaultMaterial->AddTextureProperties(L"Textures/CopperM.tif", MATERIAL_FEATURES::METALNESS);
+
+	
+	paint->AddTextureProperties(L"Textures/Paint.tif", MATERIAL_FEATURES::TEXTURE);
+	paint->AddTextureProperties(L"Textures/PaintN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	paint->AddTextureProperties(L"Textures/PaintR.tif", MATERIAL_FEATURES::ROUGHNESS);
+	paint->AddTextureProperties(L"Textures/PaintM.tif", MATERIAL_FEATURES::METALNESS);
+
+	brick->AddTextureProperties(L"Textures/Brick2.tif", MATERIAL_FEATURES::TEXTURE);
+	brick->AddTextureProperties(L"Textures/Brick2N.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::ROUGHNESS);
+	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::METALNESS);
+
+
+
+
 	skyVS = make_shared< SimpleVertexShader >(device, context);
 	skyVS->LoadShaderFile(L"VSSky.cso");
 
 	skyPS = make_shared< SimplePixelShader >(device, context);
 	skyPS->LoadShaderFile(L"PSSky.cso");
 
-	defaultMaterial = gameFactory->CreateMaterial(L"Textures/Rock.tif", L"Textures/RockN.tif", vertexShader, pixelShader);
-	floor = gameFactory->CreateMaterial(L"Textures/Brick.tif", L"Textures/BrickN.tif", vertexShader, pixelShader);
 	sky = gameFactory->CreateSkyBox(L"Textures/cubemap.dds", skyVS, skyPS);
->>>>>>> DeweBranch
 
 }
 
@@ -244,41 +184,12 @@ void Game::CreateMatrices()
 void Game::CreateBasicGeometry()
 {
 
-<<<<<<< HEAD
-
-    const char* filename = "Models/sphere.obj";
-    Mesh* mesh1 = new Mesh(filename, device);
-    Entity* e1 = new Entity(mesh1, defaultMaterial, 1.0f);
-    meshes.push_back(mesh1);
+	auto e1 = gameFactory->CreateEntity("Models/Sphere.obj", paint, 1.0f);
+	collisionManager->addCollider(e1);
     entities.push_back(e1);
-    /*
-    Entity* e2 = new Entity(mesh1, paint, 1.0f);
-    entities.push_back(e2);
-    e2->SetTranslation(XMFLOAT3(1.0f, 0.0f, 0.0f));
-    Entity* e3 = new Entity(mesh1, brick, 1.0f);
-    entities.push_back(e3);
-    e3->SetTranslation(XMFLOAT3(2.0f, 0.0f, 0.0f));
-    */
-
-    collisionManager->addCollider(e1->GetCollider());
-
-    Vertex vertices[] =
-    {
-        { XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
-        { XMFLOAT3(+50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,10) },
-        { XMFLOAT3(-50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,10) },
-        { XMFLOAT3(-50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,0) }
-    };
-
-    //Floor
-    unsigned int indices[] = { 2,1,0,2,0,3 };
-
-    Mesh* groundMesh = new Mesh(vertices, 4, indices, 6, device);
-    Entity* groundEnt = new Entity(groundMesh, brick, 0.0f);
-    meshes.push_back(groundMesh);
-=======
-	auto groundEnt = gameFactory->CreateFloor(floor, 0.0f);
->>>>>>> DeweBranch
+    
+ 
+	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
@@ -357,7 +268,6 @@ void Game::SpawnLetters(float x, float y, float z)
 
 	const float y_axis = 20.0f;
 	// create a mesh for letters and push to vector of meshes
-
 	auto letter = gameFactory->CreateLetter(defaultMaterial, 1.0f);
 	letter->SetTag("letter");
 	collisionManager->addCollider(letter);
@@ -419,9 +329,6 @@ void Game::Update(float deltaTime, float totalTime)
     //light2.Position = XMFLOAT3(x * 3.0f, 0.0f, z * 3.0f);
 
     flashlight.Position = camera->GetPosition();
-
-   
-
     frameCounter = frameCounter + deltaTime;
 
     // if letter is found

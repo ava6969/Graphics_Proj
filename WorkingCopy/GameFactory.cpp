@@ -1,5 +1,6 @@
 #include "GameFactory.h"
-
+#include "WICTextureLoader.h"
+#include "DDSTextureLoader.h"
 
 shared_ptr<Entity> GameFactory::CreateEntityWithFile(const char* file, shared_ptr<Material> material, float pos)
 {
@@ -40,6 +41,11 @@ shared_ptr<Entity> GameFactory::CreateLetter(shared_ptr<Material> letterMaterial
 	return CreateEntityWithFile("Models/cube.obj", letterMaterial, pos);
 }
 
+shared_ptr<Entity> GameFactory::CreateEntity(const char* file, shared_ptr<Material> material, float pos)
+{
+	return CreateEntityWithFile(file, material, pos);
+}
+
 
 shared_ptr<CollisionManager> GameFactory::CreateCollisionManager(shared_ptr<Camera> camera)
 {
@@ -54,10 +60,9 @@ shared_ptr<Camera> GameFactory::CreateCamera(float width, float height)
 }
 
 
-shared_ptr<Material> GameFactory::CreateMaterial(const wchar_t* file, const wchar_t* fileN, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader)
+shared_ptr<Material> GameFactory::CreateMaterial(shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader, XMFLOAT3 specColor )
 {
-	ComPtr<ID3D11ShaderResourceView> SRV;
-	ComPtr<ID3D11ShaderResourceView> NSRV;
+
 	ComPtr<ID3D11SamplerState> samplerOptions;
 	D3D11_SAMPLER_DESC sampDesc = {};
 	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -68,27 +73,11 @@ shared_ptr<Material> GameFactory::CreateMaterial(const wchar_t* file, const wcha
 	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
 	device->CreateSamplerState(&sampDesc, &samplerOptions);
+	return make_shared<Material>(context, device, vShader, pShader,samplerOptions, specColor);
 
-	// load the textures and bump maps
-	CreateWICTextureFromFile(
-		device,
-		context,
-		file,
-		0,
-		&SRV
-	);
-
-	CreateWICTextureFromFile(
-		device,
-		context,
-		fileN,
-		0,
-		&NSRV);
-
-	// make the material
-	return make_shared<Material>(vShader, pShader, SRV, NSRV, samplerOptions, 256.0);
 }
 
+	
 shared_ptr<Material> GameFactory::CreateSkyBox(const wchar_t* ddsFile, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader)
 {
 	ComPtr<ID3D11ShaderResourceView> skySRV;

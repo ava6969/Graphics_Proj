@@ -13,7 +13,7 @@ public:
 	CollisionManager(shared_ptr<Camera> cam);
 
 	void addCollider(shared_ptr <Entity> ent) {
-		if (ent->GetCollider() != NULL) {
+		if (ent->GetCollider() != nullptr) {
 			collidableObjects.push_back(ent);
 		}
 	}
