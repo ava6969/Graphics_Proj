@@ -1,26 +1,20 @@
 #include "CollisionManager.h"
 using namespace DirectX;
-CollisionManager::CollisionManager()
-{
 
-}
 
-CollisionManager::CollisionManager(Camera* cam)
+CollisionManager::CollisionManager(shared_ptr<Camera> cam)
 {
 	player = cam;
 }
 
-CollisionManager::~CollisionManager()
-{
-}
 
-bool CollisionManager::checkOverlap(Entity ent)
+bool CollisionManager::checkOverlap(shared_ptr<Entity> ent)
 {
-	Collider* entCol = ent.GetCollider();
+	Collider* entCol = ent->GetCollider();
 	if (entCol != NULL) {
 		float radSum = 0;
 		float distSqr = 0;
-		Collider* collision = checkOverlap(ent.GetCollider(), &radSum, &distSqr);
+		Collider* collision = checkOverlap(ent->GetCollider(), &radSum, &distSqr);
 		if (collision == NULL) {
 			return false;
 
@@ -33,13 +27,13 @@ bool CollisionManager::checkOverlap(Entity ent)
 		dist *= radSum;
 		XMFLOAT3 offset; 
 		XMStoreFloat3(&offset, dist);
-		ent.Move(offset);
+		ent->Move(offset);
 		return true;
 	}
 	return false;
 }
 
-bool CollisionManager::checkOverlap(Camera* cam)
+bool CollisionManager::checkOverlap(shared_ptr<Camera> cam)
 {
 	Collider* entCol = cam->GetCollider();
 	if (entCol != NULL) {
@@ -71,8 +65,8 @@ Collider* CollisionManager::checkOverlap(Collider* col, float* radSum, float* di
 	for (int i = 0; i < collidableObjects.size(); i++) {
 
 		
-		if (CircleToCircleCollision(collidableObjects[i], col, radSum, distSqr)) {
-			return collidableObjects[i];
+		if (CircleToCircleCollision(collidableObjects[i]->GetCollider(), col, radSum, distSqr)) {
+			return collidableObjects[i]->GetCollider();
 
 		}
 
@@ -80,17 +74,27 @@ Collider* CollisionManager::checkOverlap(Collider* col, float* radSum, float* di
 	return NULL;
 }
 
-void CollisionManager::HandlePlayerCollisions()
+shared_ptr<Entity> CollisionManager::HandlePlayerCollisions(const char* tag )
 {
-	if (player->GetDebug()) return;
-
-	for (int i = 0; i < collidableObjects.size(); i++)
+	if (player->GetDebug()) return nullptr;
+	int i = 0;
+	for (auto itr : collidableObjects)
 	{
 
-		if (CircleToCircleCollision(player->GetCollider(), collidableObjects[i]))
+		if (CircleToCircleCollision(player->GetCollider(), itr->GetCollider()))
 		{
-			ResolvePlayerCollision(collidableObjects[i]);
+			
+			if (itr->getTag() == tag)
+			{
+				collidableObjects.erase(collidableObjects.begin() + i);
+				return itr;
+			}
+			else {
+				ResolvePlayerCollision(collidableObjects[i]->GetCollider());
+			}
+			
 		}
+		i++;
 	}
 }
 

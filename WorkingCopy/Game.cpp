@@ -2,6 +2,7 @@
 #include "Vertex.h"
 #include "DXCore.h"
 #include "WICTextureLoader.h"
+#include <sstream>
 
 // For the DirectX Math library
 using namespace DirectX;
@@ -22,45 +23,26 @@ Game::Game(HINSTANCE hInstance)
         720,			   // Height of the window's client area
         true)			   // Show extra stats (fps) in title bar?
 {
+	
     // Initialize fields
     vertexShader = 0;
     pixelShader = 0;
     frameCounter = 0;
     prevMousePos = { 0,0 };
     cameraCanMove = false;
-    textureSRV = 0;
+
 
 #if defined(DEBUG) || defined(_DEBUG)
     // Do we want a console window?  Probably only in debug mode
     CreateConsoleWindow(500, 120, 32, 120);
     printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
-    camera = new Camera((float)width, (float)height);
-    collisionManager = new CollisionManager(camera);
+    camera = gameFactory->CreateCamera((float)width, (float)height);
+    collisionManager = gameFactory->CreateCollisionManager(camera);
 }
 
-// --------------------------------------------------------
-// Destructor - Clean up anything our game has created:
-//  - Release all DirectX objects created here
-//  - Delete any objects to prevent memory leaks
-// --------------------------------------------------------
-Game::~Game()
-{
-    // Delete our simple shader objects, which
-    // will clean up their own internal DirectX stuff
-    delete vertexShader;
-    delete pixelShader;
 
-    for (int i = 0; i < entities.size(); i++)
-    {
-        delete entities[i];
-    }
-
-    for (int i = 0; i < meshes.size(); i++)
-    {
-        delete meshes[i];
-    }
-
+<<<<<<< HEAD
     delete camera;
     delete defaultMaterial;
     delete floor;
@@ -79,6 +61,8 @@ Game::~Game()
     paintRough->Release();
     paintMetallic->Release();*/
 }
+=======
+>>>>>>> DeweBranch
 
 // --------------------------------------------------------
 // Called once per program, after DirectX and the window
@@ -89,9 +73,12 @@ void Game::Init()
     // Helper methods for loading shaders, creating some basic
     // geometry to draw and some simple camera matrices.
     //  - You'll be expanding and/or replacing these later
+	gameFactory = make_shared<GameFactory>(device, context);
     LoadShaders();
     //CreateMatrices();
     CreateBasicGeometry();
+
+	letterCount = 5;
 
     // Tell the input assembler stage of the pipeline what kind of
     // geometric primitives (points, lines or triangles) we want to draw.  
@@ -114,6 +101,7 @@ void Game::Init()
         XMFLOAT3(1.0f,-1.0f,1.0f),
         1.0f
     };
+
 }
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files using
@@ -123,12 +111,13 @@ void Game::Init()
 // --------------------------------------------------------
 void Game::LoadShaders()
 {
-    vertexShader = new SimpleVertexShader(device, context);
+    vertexShader = make_shared < SimpleVertexShader >(device, context);
     vertexShader->LoadShaderFile(L"VertexShader.cso");
 
-    pixelShader = new SimplePixelShader(device, context);
+    pixelShader = make_shared < SimplePixelShader >(device, context);
     pixelShader->LoadShaderFile(L"PixelShader.cso");
 
+<<<<<<< HEAD
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -190,6 +179,17 @@ void Game::LoadShaders()
     CreateWICTextureFromFile(device, context, L"Textures/Brick2N.tif", 0, &brick->normalMap);
     CreateWICTextureFromFile(device, context, L"Textures/Brick2R.tif", 0, &brick->roughness);
     CreateWICTextureFromFile(device, context, L"Textures/NonMetal.png", 0, &brick->metalness);
+=======
+	skyVS = make_shared< SimpleVertexShader >(device, context);
+	skyVS->LoadShaderFile(L"VSSky.cso");
+
+	skyPS = make_shared< SimplePixelShader >(device, context);
+	skyPS->LoadShaderFile(L"PSSky.cso");
+
+	defaultMaterial = gameFactory->CreateMaterial(L"Textures/Rock.tif", L"Textures/RockN.tif", vertexShader, pixelShader);
+	floor = gameFactory->CreateMaterial(L"Textures/Brick.tif", L"Textures/BrickN.tif", vertexShader, pixelShader);
+	sky = gameFactory->CreateSkyBox(L"Textures/cubemap.dds", skyVS, skyPS);
+>>>>>>> DeweBranch
 
 }
 
@@ -244,6 +244,7 @@ void Game::CreateMatrices()
 void Game::CreateBasicGeometry()
 {
 
+<<<<<<< HEAD
 
     const char* filename = "Models/sphere.obj";
     Mesh* mesh1 = new Mesh(filename, device);
@@ -275,42 +276,48 @@ void Game::CreateBasicGeometry()
     Mesh* groundMesh = new Mesh(vertices, 4, indices, 6, device);
     Entity* groundEnt = new Entity(groundMesh, brick, 0.0f);
     meshes.push_back(groundMesh);
+=======
+	auto groundEnt = gameFactory->CreateFloor(floor, 0.0f);
+>>>>>>> DeweBranch
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
-
+	SpawnLetters(0.0f, -1.0f, 30.0f);
+	SpawnLetters(10.0f,-1.0f, 10.0f);
 }
 
 
 
 //Spawns the trees for the game in a grid
 //TODO Random Rotation
+/*
+@param
+int x - neg  bound
+int y - pos  bound
+int steps - intervals between range [-x,x] and [-z,z] to spawn trees
+*/
 void Game::SpawnTreeGrid(int x, int y, int step)
 {
-    float spawnWeight = 1.15;
+    float spawnWeight = 1.2;
     float spawnStrenght = 1;
     float spawnChance = 40.0f;
-
-    const char* treeFileName = "Models/DeadTree.obj";
-    Mesh* treeMesh = new Mesh(treeFileName, device);
-    meshes.push_back(treeMesh);
+	int count = 5;
 
     for (int i = -x; i <= x; i += step) {
         for (int j = -y; j <= y; j += step) {
             float spawnSeed = (rand() % 100 + 1) / spawnStrenght;
             if (spawnSeed <= spawnChance) {
-
-
-                Entity* tree = new Entity(treeMesh, defaultMaterial, 1.0f);
+				auto tree = gameFactory->CreateTree(defaultMaterial, 1.0f);
+				tree->SetTag("tree");
                 spawnStrenght = 1;
                 float offsetX = (rand() % 10 + 1) / 10.0f;
                 float offsetZ = (rand() % 10 + 1) / 10.0f;
 
                 offsetX *= step / 2;
                 offsetZ *= step / 3;
-                collisionManager->addCollider(tree->GetCollider());
+                collisionManager->addCollider(tree);
 
-                tree->SetTranslation(i + offsetX, -3, j + offsetZ);
+                tree->SetTranslation(i + offsetX, -3, j + offsetZ);				
                 entities.push_back(tree);
 
             }
@@ -318,12 +325,69 @@ void Game::SpawnTreeGrid(int x, int y, int step)
                 spawnStrenght *= spawnWeight;
             }
 
-
         }
     }
 
 
 }
+
+void Game::Destroy(shared_ptr<Entity> objectToDestroy)
+{
+	// gets a pointer to an object and compares position of the resource to an object in the entity vector, removes object at that position
+	int count = 0;
+	for (auto itr : entities)
+	{
+		if (objectToDestroy->GetPosition().x == itr->GetPosition().x &&
+			objectToDestroy->GetPosition().y == itr->GetPosition().y &&
+			objectToDestroy->GetPosition().z == itr->GetPosition().z)
+		{
+			auto toDelete = entities[count];
+			entities.erase(entities.begin() + count);
+			--letterCount;
+		}
+		++count;
+	}
+}
+
+
+
+
+void Game::SpawnLetters(float x, float y, float z)
+{
+
+	const float y_axis = 20.0f;
+	// create a mesh for letters and push to vector of meshes
+
+	auto letter = gameFactory->CreateLetter(defaultMaterial, 1.0f);
+	letter->SetTag("letter");
+	collisionManager->addCollider(letter);
+	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.02f);
+	letter->SetScale(SCALE);
+	letter->SetTranslation(x, y, z);
+	entities.push_back(letter);
+
+}
+
+void Game::DrawAText()
+{
+
+	// create FPS information text layout
+	std::wostringstream outFPS;
+	outFPS.precision(6);
+	outFPS << "Letters Collected : " << letterCount << " of 5" << std::endl;
+
+	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
+
+	 if (textLayoutFPS)
+	 {
+		 d2Context->BeginDraw();
+		 d2Context->DrawTextLayout(D2D1::Point2F(width - 200.0f ,height - 50.0f), textLayoutFPS.Get(), yellowBrush.Get()); // drawtextlayout first param: what point should text be drawn
+		 d2Context->EndDraw();
+
+	 }
+
+}
+
 
 
 // --------------------------------------------------------
@@ -360,12 +424,19 @@ void Game::Update(float deltaTime, float totalTime)
 
     frameCounter = frameCounter + deltaTime;
 
-    collisionManager->HandlePlayerCollisions();
+    // if letter is found
+	auto objToRemove = collisionManager->HandlePlayerCollisions("letter");
+	if (objToRemove != nullptr)
+	{
+		Destroy(objToRemove);
+	
+	}
+
 
     //float val = sin(frameCounter);
     //entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));
     //entities[1]->SetScale(XMFLOAT3(val + 1, val + 1, val + 1));
-    entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
+    //entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
     }
@@ -389,6 +460,11 @@ void Game::Draw(float deltaTime, float totalTime)
         D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
         1.0f,
         0);
+	// Set buffers in the input assembler
+	//  - Do this ONCE PER OBJECT you're drawing, since each object might
+	//    have different geometry.
+	UINT stride = sizeof(Vertex);
+	UINT offset = 0;
 
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
@@ -396,11 +472,6 @@ void Game::Draw(float deltaTime, float totalTime)
         entities[i]->GetMaterial()->GetPixelShader()->SetFloat3("cameraPos", camera->GetPosition());
         entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &flashlight, &light2);
 
-        // Set buffers in the input assembler
-        //  - Do this ONCE PER OBJECT you're drawing, since each object might
-        //    have different geometry.
-        UINT stride = sizeof(Vertex);
-        UINT offset = 0;
 
         // get a temp variable to access the buffer
         ID3D11Buffer* vTemp = entities[i]->GetVertexBuffer();
@@ -420,6 +491,41 @@ void Game::Draw(float deltaTime, float totalTime)
             0);    // Offset to add to each index when looking up vertices
     }
 
+	// === Sky box drawing ======================
+// Draw the sky AFTER everything else to prevent overdraw
+
+// Set up sky states
+	context->RSSetState(sky->GetSkyRastState().Get());
+	context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
+
+	// Grab the data from the box mesh
+	auto skyMesh = gameFactory->CreateCubeMesh();
+	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
+	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
+
+	// Set buffers in the input assembler
+	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+	
+	// Set up the new sky shaders
+	skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
+	skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+
+	skyVS->CopyAllBufferData();
+	skyVS->SetShader();
+
+	skyPS->SetShader();
+	skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get() );
+	skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get() );
+
+	// Finally do the actual drawing
+	context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
+
+	// Reset states for next frame
+	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+
+	DrawAText();
     // Present the back buffer to the user
     //  - Puts the final frame we're drawing into the window so the user can see it
     //  - Do this exactly ONCE PER FRAME (always at the very end of the frame)

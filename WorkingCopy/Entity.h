@@ -7,12 +7,14 @@
 #include "Material.h"
 #include "Lights.h"
 #include "Collider.h"
+#include <memory>
 
+using namespace std;
 class Entity
 {
 public:
 	Entity();
-	Entity(Mesh* m, Material* mat, float rad);
+	Entity(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad);
 	~Entity();
 	
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
@@ -28,21 +30,34 @@ public:
 	void MoveForward(float amount);
 	void SetDirtyMatrix();
 	void ComputeWorldMatrix();
-	
+	inline void SetTag(const char* tag) { this->tag = tag; };
+
 	ID3D11Buffer* GetVertexBuffer();
 	ID3D11Buffer* GetIndexBuffer();
 	int GetIndexCount();
-	Material* GetMaterial();
+	shared_ptr<Material> GetMaterial();
 	Collider* GetCollider();
+<<<<<<< HEAD
 	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2);
+=======
+	inline DirectX::XMFLOAT3 GetPosition() const { return position; }
+
+	inline const char* getTag() { return tag; }
+	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
+
+>>>>>>> DeweBranch
 private:
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 scale;
 	DirectX::XMFLOAT4 rotation;
-	Mesh* mesh;
+	shared_ptr<Mesh> mesh;
 	bool isDirty;
-	Material* material;
+	shared_ptr<Material> material;
 	Collider* collider;
+	// tag that describes entity
+	const char* tag;
+
+	
 };
 

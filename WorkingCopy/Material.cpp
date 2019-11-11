@@ -1,5 +1,6 @@
 #include "Material.h"
 
+<<<<<<< HEAD
 Material::Material()
 {
 	vertexShader = nullptr;
@@ -36,25 +37,38 @@ Material::Material(SimpleVertexShader* vertex, SimplePixelShader* pixel, ID3D11S
 	roughness = rough;
 	metalness = metal;
 }
+=======
 
-Material::~Material()
+>>>>>>> DeweBranch
+
+Material::Material(shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixelShader> pixel, ComPtr<ID3D11ShaderResourceView> tex, ComPtr<ID3D11ShaderResourceView> norm, ComPtr<ID3D11SamplerState> opt, float shine)
 {
+<<<<<<< HEAD
 	texture->Release();
 	normalMap->Release();
 	roughness->Release();
 	metalness->Release();
+=======
+		vertexShader = vertex;
+		pixelShader = pixel;
+		texture = tex;
+		normalMap = norm;
+		samplerOptions = opt;
+		shininess = shine;
+>>>>>>> DeweBranch
 }
 
-SimpleVertexShader* Material::GetVertexShader()
+shared_ptr<SimpleVertexShader> Material::GetVertexShader()
 {
 	return vertexShader;
 }
 
-SimplePixelShader* Material::GetPixelShader()
+shared_ptr<SimplePixelShader> Material::GetPixelShader()
 {
 	return pixelShader;
 }
 
+<<<<<<< HEAD
 void Material::SetVertexShader(SimpleVertexShader* v)
 {
 	vertexShader = v;
@@ -66,15 +80,19 @@ void Material::SetPixelShader(SimplePixelShader* p)
 }
 
 ID3D11ShaderResourceView* Material::GetTexture()
+=======
+ComPtr<ID3D11ShaderResourceView> Material::GetTexture()
+>>>>>>> DeweBranch
 {
 	return texture;
 }
 
-ID3D11ShaderResourceView* Material::GetNormalMap()
+ComPtr<ID3D11ShaderResourceView> Material::GetNormalMap()
 {
 	return normalMap;
 }
 
+<<<<<<< HEAD
 ID3D11ShaderResourceView* Material::GetRoughness()
 {
 	return roughness;
@@ -86,6 +104,9 @@ ID3D11ShaderResourceView* Material::GetMetalness()
 }
 
 ID3D11SamplerState* Material::GetSampler()
+=======
+ComPtr<ID3D11SamplerState> Material::GetSampler()
+>>>>>>> DeweBranch
 {
 	return samplerOptions;
 }

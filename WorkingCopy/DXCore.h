@@ -3,10 +3,24 @@
 #include <Windows.h>
 #include <d3d11.h>
 #include <string>
+#include <dwrite.h>
+#include <d2d1_2.h>
+#include <dwrite_2.h>
+#include <Winuser.h>
+#include <dxgidebug.h>
+#include <wrl/client.h>
+
+
+using namespace std;
+using namespace Microsoft::WRL;
+#define INITIALX_96DPI 50 
+#define INITIALY_96DPI 50 
 
 // We can include the correct library files here
 // instead of in Visual Studio settings if we want
 #pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
 
 class DXCore
 {
@@ -28,12 +42,15 @@ public:
 		LPARAM lParam	// Message's second parameter
 		);
 
+
 	// Internal method for message handling
 	LRESULT ProcessMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	// Initialization and game-loop related methods
 	HRESULT InitWindow();
 	HRESULT InitDirectX();
+	HRESULT InitDirect2D();
+
 	HRESULT Run();				
 	void Quit();
 	virtual void OnResize();
@@ -55,7 +72,7 @@ protected:
 	HWND		hWnd;			// The handle to the window itself
 	std::string titleBarText;	// Custom text in window's title bar
 	bool		titleBarStats;	// Show extra stats in title bar?
-	
+
 	// Size of the window's client area
 	unsigned int width;
 	unsigned int height;
@@ -64,15 +81,39 @@ protected:
 	D3D_FEATURE_LEVEL		dxFeatureLevel;
 	IDXGISwapChain*			swapChain;
 	ID3D11Device*			device;
+	ID3D11Debug*			m_d3dDebug;
 	ID3D11DeviceContext*	context;
+
+
+	// Direct 2dstuffs
+	ComPtr<ID2D1Factory2> factory;			// pointer to all drect2d factory
+	ComPtr<ID2D1Device1> d2Device;
+	ComPtr<ID2D1DeviceContext1> d2Context;
+	ComPtr<IDWriteFactory2> writeFactory;	// pointer to the DirectWrite factory
 
 	ID3D11RenderTargetView* backBufferRTV;
 	ID3D11DepthStencilView* depthStencilView;
 
+
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
+	HRESULT CreateBitmapRenderTarget();
+	HRESULT InitializeTextFormats();
+
+
+	// Colors
+	ComPtr<ID2D1SolidColorBrush> yellowBrush;
+	ComPtr<ID2D1SolidColorBrush> blackBrush;
+	ComPtr<ID2D1SolidColorBrush> whiteBrush;
+
+	// Text Format
+	ComPtr<IDWriteTextFormat> textFormatFPS;
+	// text layouts
+	ComPtr<IDWriteTextLayout> textLayoutFPS;
 
 private:
+
+
 	// Timing related data
 	double perfCounterSeconds;
 	float totalTime;
@@ -87,5 +128,7 @@ private:
 	
 	void UpdateTimer();			// Updates the timer for this frame
 	void UpdateTitleBarStats();	// Puts debug info in the title bar
+
+
 };
 
