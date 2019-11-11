@@ -106,7 +106,7 @@ void Game::LoadShaders()
 
 	defaultMaterial = gameFactory->CreateMaterial(L"Textures/Rock.tif", L"Textures/RockN.tif", vertexShader, pixelShader);
 	floor = gameFactory->CreateMaterial(L"Textures/Brick.tif", L"Textures/BrickN.tif", vertexShader, pixelShader);
-	sky = gameFactory->CreateSkyBox(L"Textures/secunda_full.dds", skyVS, skyPS);
+	sky = gameFactory->CreateSkyBox(L"Textures/cubemap.dds", skyVS, skyPS);
 
 }
 
