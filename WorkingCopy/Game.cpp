@@ -98,6 +98,11 @@ void Game::LoadShaders()
 	defaultMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
 	paint = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.07f, 0.07f, 0.07f));
 	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
+	cabin = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
+	stone = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
+	tent = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
+	tower = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
+	truck = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
 	
 	// load the textures and bump maps
 	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
@@ -115,6 +120,32 @@ void Game::LoadShaders()
 	brick->AddTextureProperties(L"Textures/Brick2N.tif", MATERIAL_FEATURES::NORMAL_MAP);
 	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::ROUGHNESS);
 	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::METALNESS);
+
+	cabin->AddTextureProperties(L"Textures/WoodCabinA.jpg", MATERIAL_FEATURES::TEXTURE);
+	cabin->AddTextureProperties(L"Textures/WoodCabinN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	cabin->AddTextureProperties(L"Textures/WoodCabinR.jpg", MATERIAL_FEATURES::ROUGHNESS);
+	cabin->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	stone->AddTextureProperties(L"Textures/StoneA.jpg", MATERIAL_FEATURES::TEXTURE);
+	stone->AddTextureProperties(L"Textures/StoneN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	stone->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::ROUGHNESS);
+	stone->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	tent->AddTextureProperties(L"Textures/TentA.jpg", MATERIAL_FEATURES::TEXTURE);
+	tent->AddTextureProperties(L"Textures/TentN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	tent->AddTextureProperties(L"Textures/TentR.png", MATERIAL_FEATURES::ROUGHNESS);
+	tent->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	tower->AddTextureProperties(L"Textures/TowerA.png", MATERIAL_FEATURES::TEXTURE);
+	tower->AddTextureProperties(L"Textures/TowerN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	tower->AddTextureProperties(L"Textures/TowerR.png", MATERIAL_FEATURES::ROUGHNESS);
+	tower->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	truck->AddTextureProperties(L"Textures/oil-truck.tif", MATERIAL_FEATURES::TEXTURE);
+	truck->AddTextureProperties(L"Textures/oil-truckNrml.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	truck->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::ROUGHNESS);
+	truck->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
 
 	skyVS = make_shared< SimpleVertexShader >(device, context);
 	skyVS->LoadShaderFile(L"VSSky.cso");
@@ -175,12 +206,44 @@ void Game::CreateMatrices()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
+	// shipping container
 	auto e1 = gameFactory->CreateEntity("Models/Container.obj", paint, XMFLOAT2(4.6f, 9.4f));
 	collisionManager->addCollider(e1);
     entities.push_back(e1);
 	e1->SetTranslation(0.0f, 0.0f, 7.0f);
 	e1->SetScale(XMFLOAT3(2.0f, 2.0f, 2.0f));
     
+	// cabin
+	auto e2 = gameFactory->CreateEntity("Models/Cabin.obj", cabin, XMFLOAT2(5.5f, 7.8f));
+	collisionManager->addCollider(e2);
+	entities.push_back(e2);
+	e2->SetScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
+	e2->SetTranslation(10.0f, -2.0f, 0.0f);
+
+	// rock
+	auto e3 = gameFactory->CreateEntity("Models/Stone.obj", stone, 2.0f);
+	collisionManager->addCollider(e3);
+	entities.push_back(e3);
+	e3->SetTranslation(-7.0f, -1.0f, -3.0f);
+
+	// tent
+	auto e4 = gameFactory->CreateEntity("Models/Tent.obj", tent, XMFLOAT2(5.2f,8.3f));
+	collisionManager->addCollider(e4);
+	entities.push_back(e4);
+	e4->SetTranslation(7.0f, -1.9f, 18.0f);
+	e4->SetScale(XMFLOAT3(0.5f, 0.5f, 0.5f));
+
+	// tower
+	auto e5 = gameFactory->CreateEntity("Models/Tower.obj", tower, XMFLOAT2(5.5f, 5.5f));
+	collisionManager->addCollider(e5);
+	entities.push_back(e5);
+	e5->SetTranslation(-20.0f, -2.0f, 18.0f);
+
+	// truck
+	auto e6 = gameFactory->CreateEntity("Models/Truck.obj", truck, XMFLOAT2(10.0f, 4.3f));
+	collisionManager->addCollider(e6);
+	entities.push_back(e6);
+	e6->SetTranslation(0.0f, -2.1f, -15.0f);
  
 	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
     entities.push_back(groundEnt);
