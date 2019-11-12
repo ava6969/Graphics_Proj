@@ -9,6 +9,10 @@
 #include "Material.h"
 #include "Lights.h"
 #include "CollisionManager.h"
+#include "GameFactory.h"
+
+
+
 
 class Game 
 	: public DXCore
@@ -16,8 +20,7 @@ class Game
 
 public:
 	Game(HINSTANCE hInstance);
-	~Game();
-
+	shared_ptr<GameFactory> gameFactory;
 	// Overridden setup and game loop methods, which
 	// will be called automatically
 	void Init();
@@ -36,10 +39,20 @@ private:
 	void LoadShaders(); 
 	void CreateMatrices();
 	void CreateBasicGeometry();
+	void DrawAText();
+	void SpawnLetters(float x,float y ,float z);
+    void SpawnTreeGrid(int x, int y, int step);
+	void Destroy(shared_ptr<Entity> objectToDestroy);
+
+
+	// Letter Stuffs
+	int letterCount;
 
 	// Wrappers for DirectX shaders to provide simplified functionality
-	SimpleVertexShader* vertexShader;
-	SimplePixelShader* pixelShader;
+	shared_ptr < SimpleVertexShader > vertexShader;
+	shared_ptr< SimplePixelShader> pixelShader;
+    shared_ptr<SimpleVertexShader> skyVS;
+	shared_ptr<SimplePixelShader> skyPS;
 
 	// The matrices to go from model space to screen space
 	DirectX::XMFLOAT4X4 worldMatrix;
@@ -50,39 +63,43 @@ private:
 	// determining how far the mouse moved in a single frame.
 	POINT prevMousePos;
 
+
 	// array of meshes to load / draw
-	std::vector<Mesh*> meshes;
-	std::vector<Entity*> entities;
+	vector<shared_ptr<Entity> > entities;
 
 	float frameCounter;
 
 	// Camera pointer
-	Camera* camera;
+	shared_ptr<Camera> camera;
 	bool cameraCanMove;
 
 	// materials
-	Material* defaultMaterial;
-	Material* floor;
-	Material* paint;
-	Material* brick;
+	// TODO chnage to smart pointers
+	//Material* defaultMaterial;
+	//Material* floor;
+	//Material* paint;
+	//Material* brick;
 
-	CollisionManager* collisionManager;
+	shared_ptr<Material> defaultMaterial;
+	shared_ptr<Material> floor;
+	shared_ptr<Material> sky;
+	shared_ptr<Material> paint;
+	shared_ptr<Material> brick;
+	shared_ptr<CollisionManager> collisionManager;
+
 
 	// lights
 	SpotLight flashlight;
 	DirectionalLight light2;
 
+	// TO DO Chhange to ComPtr and game Factory
 	// textures
-	ID3D11ShaderResourceView* textureSRV;
-	ID3D11ShaderResourceView* textureNSRV;
-	ID3D11ShaderResourceView* copperRough;
-	ID3D11ShaderResourceView* copperMetallic;
-	ID3D11ShaderResourceView* paintAlbedo;
-	ID3D11ShaderResourceView* paintNormal;
-	ID3D11ShaderResourceView* paintRough;
-	ID3D11ShaderResourceView* paintMetallic;
-	ID3D11ShaderResourceView* floorSRV;
-	ID3D11ShaderResourceView* floorNSRV;
-	ID3D11SamplerState* samplerOptions;
+	ComPtr<ID3D11ShaderResourceView> copperRough;
+	ComPtr<ID3D11ShaderResourceView> copperMetallic;
+	ComPtr<ID3D11ShaderResourceView> paintAlbedo;
+	ComPtr<ID3D11ShaderResourceView> paintNormal;
+	ComPtr<ID3D11ShaderResourceView> paintRough;
+	ComPtr<ID3D11ShaderResourceView> paintMetallic;
+
 };
 

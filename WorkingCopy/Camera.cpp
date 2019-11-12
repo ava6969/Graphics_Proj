@@ -81,7 +81,7 @@ bool Camera::GetDebug()
 void Camera::Update(float deltaTime)
 {
 	// get user input
-	CheckForInput(2.5f, deltaTime);
+	CheckForInput(4.0f, deltaTime);
 
 	// calculate the view quaternion
 	XMVECTOR view = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);

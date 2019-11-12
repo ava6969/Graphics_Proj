@@ -1,5 +1,4 @@
 #include "DXCore.h"
-
 #include <WindowsX.h>
 #include <sstream>
 
@@ -61,6 +60,8 @@ DXCore::DXCore(
 	__int64 perfFreq;
 	QueryPerformanceFrequency((LARGE_INTEGER*)&perfFreq);
 	perfCounterSeconds = 1.0 / (double)perfFreq;
+
+
 }
 
 // --------------------------------------------------------
@@ -75,6 +76,9 @@ DXCore::~DXCore()
 	if (swapChain) { swapChain->Release();}
 	if (context) { context->Release();}
 	if (device) { device->Release();}
+
+	if (m_d3dDebug) { m_d3dDebug->Release(); }
+
 }
 
 // --------------------------------------------------------
@@ -163,20 +167,21 @@ HRESULT DXCore::InitWindow()
 HRESULT DXCore::InitDirectX()
 {
 	// This will hold options for DirectX initialization
-	unsigned int deviceFlags = 0;
+	unsigned int deviceFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
 #if defined(DEBUG) || defined(_DEBUG)
 	// If we're in debug mode in visual studio, we also
 	// want to make a "Debug DirectX Device" to see some
 	// errors and warnings in Visual Studio's output window
 	// when things go wrong!
-	//deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+	deviceFlags |= D3D11_CREATE_DEVICE_DEBUG ;
+
 #endif
 
 	// Create a description of how our swap
 	// chain should work
 	DXGI_SWAP_CHAIN_DESC swapDesc = {};
-	swapDesc.BufferCount = 2;
+	swapDesc.BufferCount = 3;
 	swapDesc.BufferDesc.Width = width;
 	swapDesc.BufferDesc.Height = height;
 	swapDesc.BufferDesc.RefreshRate.Numerator = 60;
@@ -185,7 +190,7 @@ HRESULT DXCore::InitDirectX()
 	swapDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 	swapDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 	swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	swapDesc.Flags = 0;
+	swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;		// allow mode switching
 	swapDesc.OutputWindow = hWnd;
 	swapDesc.SampleDesc.Count = 1;
 	swapDesc.SampleDesc.Quality = 0;
@@ -202,7 +207,7 @@ HRESULT DXCore::InitDirectX()
 		0,							// Used when doing software rendering
 		deviceFlags,				// Any special options
 		0,							// Optional array of possible verisons we want as fallbacks
-		0,							// The number of fallbacks in the above param
+		0,// The number of fallbacks in the above param
 		D3D11_SDK_VERSION,			// Current version of the SDK
 		&swapDesc,					// Address of swap chain options
 		&swapChain,					// Pointer to our Swap Chain pointer
@@ -211,6 +216,9 @@ HRESULT DXCore::InitDirectX()
 		&context);					// Pointer to our Device Context pointer
 	if (FAILED(hr)) return hr;
 
+	device->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&m_d3dDebug));
+	m_d3dDebug->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+
 	// The above function created the back buffer render target
 	// for us, but we need a reference to it
 	ID3D11Texture2D* backBufferTexture = 0;
@@ -218,7 +226,7 @@ HRESULT DXCore::InitDirectX()
 		0,
 		__uuidof(ID3D11Texture2D),
 		(void**)&backBufferTexture);
-
+	
 	// Now that we have the texture, create a render target view
 	// for the back buffer so we can render into it.  Then release
 	// our local reference to the texture, since we have the view.
@@ -228,8 +236,11 @@ HRESULT DXCore::InitDirectX()
 			backBufferTexture,
 			0,
 			&backBufferRTV);
+
 		backBufferTexture->Release();
 	}
+
+	
 
 	// Set up the description of the texture to use for the depth buffer
 	D3D11_TEXTURE2D_DESC depthStencilDesc = {};
@@ -270,9 +281,106 @@ HRESULT DXCore::InitDirectX()
 	viewport.MaxDepth	= 1.0f;
 	context->RSSetViewports(1, &viewport);
 
+
+
+	// Direct2Dstuffs
+	InitDirect2D();
+	CreateBitmapRenderTarget();
+	InitializeTextFormats();
 	// Return the "everything is ok" HRESULT value
+	return hr;
+}
+
+HRESULT DXCore::InitDirect2D()
+{
+
+	// create the Direct2D factory
+	D2D1_FACTORY_OPTIONS options;
+#ifndef NDEBUG
+	options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
+#else
+	options.debugLevel = D2D1_DEBUG_LEVEL_NONE;
+#endif
+	// create the DirectWrite factory
+	if SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &writeFactory))
+		printf("SUCCESS: Created DWrite Factory\n");
+	
+	if SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory2), &options, &factory))
+		printf("SUCCESS: Created Direct2D Factory\n");
+
+	ComPtr<IDXGIDevice> dxgiDevice;
+	// get the dxgi device
+	if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice))) // change to regular pointer issue persist
+		printf("SUCCESS: Got DXGI Device\n");
+
+	// create the Direct2D device
+	if SUCCEEDED(factory->CreateDevice(dxgiDevice.Get(), &d2Device))
+		printf("SUCCESS: Created Direct2D device\n");
+
+	if (SUCCEEDED(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &d2Context)))
+		printf("SUCCESS:Created Direct2D device Context!\n");
+
+	return S_OK;
+
+}
+
+HRESULT DXCore::CreateBitmapRenderTarget()
+{
+	// specify the desired bitmap properties
+	D2D1_BITMAP_PROPERTIES1 bp;
+	bp.pixelFormat.format = DXGI_FORMAT_UNKNOWN;
+	bp.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE;
+	bp.dpiX = 96.0f;
+	bp.dpiY = 96.0f;
+	bp.bitmapOptions = D2D1_BITMAP_OPTIONS::D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS::D2D1_BITMAP_OPTIONS_CANNOT_DRAW;
+	bp.colorContext = nullptr;
+
+	// Direct2D needs the DXGI version of the back buffer
+	ComPtr<IDXGISurface> dxgiBuffer;
+	if (SUCCEEDED(swapChain->GetBuffer(0, __uuidof(IDXGISurface), &dxgiBuffer)))
+		printf("SUCCESS: Retrived BackBuffer from SwapChain\n");
+	
+	// create the bitmap
+	ComPtr<ID2D1Bitmap1> targetBitmap;
+	HRESULT hr = d2Context->CreateBitmapFromDxgiSurface(dxgiBuffer.Get(), &bp, &targetBitmap);
+	if (SUCCEEDED(hr))
+		printf("SUCCESS: Created Direct2d bitmap from DXGI Surface!\n");
+
+	if (FAILED(hr))
+		printf("Critical error: Unable to create the Direct2D bitmap from the DXGI surface!\n");
+
+	// set the newly created bitmap as render target
+		d2Context->SetTarget(targetBitmap.Get());
+
+	// return success
+		return S_OK;
+}
+
+		
+HRESULT DXCore::InitializeTextFormats()
+{
+	// create standard brushes
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &yellowBrush))
+		printf("SUCCESS: Created yellow brush\n");
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &blackBrush))
+		printf("SUCCESS: Created Black brush\n");
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &whiteBrush))
+		printf("SUCCESS: Created White brush\n");
+		
+	// set up text formats
+
+	// FPS text
+	if(SUCCEEDED(writeFactory.Get()->CreateTextFormat(L"Lucida Console", nullptr, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12.0f, L"en-GB", &textFormatFPS)))
+		printf("SUCCESS: Created text format for FPS Information!\n");
+	if (SUCCEEDED(textFormatFPS->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING)))
+		printf("SUCCESS: Set Text Alignment\n");
+	if (SUCCEEDED(textFormatFPS->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)))
+		printf("SUCCESS:Set Paragraph Alignment\n");
+
+	// return success
 	return S_OK;
 }
+
 
 // --------------------------------------------------------
 // When the window is resized, the underlying 
@@ -284,6 +392,10 @@ HRESULT DXCore::InitDirectX()
 // --------------------------------------------------------
 void DXCore::OnResize()
 {
+	// release and reset all resources
+	if (d2Device)
+		d2Context->SetTarget(nullptr);
+
 	// Release existing DirectX views and buffers
 	if (depthStencilView) { depthStencilView->Release(); }
 	if (backBufferRTV) { backBufferRTV->Release(); }
@@ -344,8 +456,12 @@ void DXCore::OnResize()
 	viewport.MinDepth = 0.0f;
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
-}
 
+	// (re)-create the Direct2D target bitmap associated with the swap chain back buffer and set it as the current target
+	if (d2Device)
+		CreateBitmapRenderTarget();
+
+}
 
 // --------------------------------------------------------
 // This is the main game loop, handling the following:
@@ -393,6 +509,7 @@ HRESULT DXCore::Run()
 	// We'll end up here once we get a WM_QUIT message,
 	// which usually comes from the user closing the window
 	return (HRESULT)msg.wParam;
+
 }
 
 
@@ -402,6 +519,7 @@ HRESULT DXCore::Run()
 // --------------------------------------------------------
 void DXCore::Quit()
 {
+	
 	PostMessage(this->hWnd, WM_CLOSE, NULL, NULL);
 }
 
@@ -476,6 +594,8 @@ void DXCore::UpdateTitleBarStats()
 	fpsFrameCount = 0;
 	fpsTimeElapsed += 1.0f;
 }
+
+
 
 // --------------------------------------------------------
 // Allocates a console window we can print to for debugging

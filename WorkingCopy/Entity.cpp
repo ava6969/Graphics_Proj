@@ -3,22 +3,20 @@ using namespace DirectX;
 
 Entity::Entity()
 {
+
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 
 	// set initial scale and position
 	position = XMFLOAT3(0, 0, 0);
 	scale = XMFLOAT3(1, 1, 1);
-
 	// set the initial rotation quaternion
 	XMStoreFloat4(&rotation, XMQuaternionIdentity());
-
-	mesh = new Mesh();
-
+	mesh = make_shared<Mesh>();
 	isDirty = true;
 }
 
-Entity::Entity(Mesh* m, Material* mat, float rad)
+Entity::Entity(std::shared_ptr<Mesh> m, std::shared_ptr < Material> mat, float rad)
 {
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
@@ -40,7 +38,7 @@ Entity::Entity(Mesh* m, Material* mat, float rad)
 	collider = new Collider(rad);
 }
 
-Entity::Entity(Mesh* m, Material* mat, DirectX::XMFLOAT2 s)
+Entity::Entity(shared_ptr<Mesh> m, shared_ptr<Material> mat, DirectX::XMFLOAT2 s)
 {
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
@@ -152,7 +150,7 @@ int Entity::GetIndexCount()
 	return mesh->GetIndexCount();
 }
 
-Material* Entity::GetMaterial()
+shared_ptr<Material> Entity::GetMaterial()
 {
 	return material;
 }
@@ -162,7 +160,9 @@ Collider* Entity::GetCollider()
 	return collider;
 }
 
-void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2)
+//void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight const& light, PointLight const& light2);
+
+void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight * light, DirectionalLight * light2)
 {
 	// Send data to shader variables
 		//  - Do this ONCE PER OBJECT you're drawing
@@ -176,11 +176,12 @@ void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj,
 	material->GetPixelShader()->SetData("light2", light2, sizeof(DirectionalLight));
 	material->GetPixelShader()->SetFloat("shininess", material->GetShininess());
 	material->GetPixelShader()->SetFloat3("specularColor", material->GetSpecularColor());
-	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture());
-	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap());
-	material->GetPixelShader()->SetShaderResourceView("roughnessMap", material->GetRoughness());
-	material->GetPixelShader()->SetShaderResourceView("metalnessMap", material->GetMetalness());
-	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler());
+	material->GetPixelShader()->SetShaderResourceView("roughnessMap", material->GetRoughness().Get());
+	material->GetPixelShader()->SetShaderResourceView("metalnessMap", material->GetMetalness().Get());
+	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture().Get());
+	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap().Get());
+	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler().Get());
+
 
 	// Once you've set all of the data you care to change for
 	// the next draw call, you need to actually send it to the GPU
