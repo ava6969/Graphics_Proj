@@ -25,10 +25,10 @@ shared_ptr<Entity> GameFactory::CreateFloor(shared_ptr<Material> floorMaterial, 
 {
 	Vertex vertices[] =
 	{
-		{ XMFLOAT3(+50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
-		{ XMFLOAT3(+50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,10) },
-		{ XMFLOAT3(-50.0f, -2.0f, +50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,10) },
-		{ XMFLOAT3(-50.0f, -2.0f, -50.0f), XMFLOAT3(0,1,0), XMFLOAT2(10,0) }
+		{ XMFLOAT3(+160.0f, -2.0f, -160.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
+		{ XMFLOAT3(+160.0f, -2.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,30) },
+		{ XMFLOAT3(-160.0f, -2.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(30,30) },
+		{ XMFLOAT3(-160.0f, -2.0f, -160.0f), XMFLOAT3(0,1,0), XMFLOAT2(30,0) }
 	};
 	unsigned int indices[] = { 2,1,0,2,0,3 };
 	return CreateEntityWithVertex(vertices, indices, floorMaterial, pos);

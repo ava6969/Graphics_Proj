@@ -111,6 +111,7 @@ void Camera::CheckForInput(float sensitivity, float dt)
 	if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
 	{
 		sensitivity *= 2.5f;
+		if (debug) sensitivity = 20.0f * dt;
 	}
 	// forward
 	if (GetAsyncKeyState('W') & 0x8000)

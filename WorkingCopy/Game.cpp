@@ -65,9 +65,9 @@ void Game::Init()
         XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
         XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// diffuse
         XMFLOAT3(0.0f,0.0f,-3.0f),			// position
-        50.0f,								// angle
+        50.0f,								// angle (50)
         XMFLOAT3(0.0f, 0.0f, 1.0f),			// direction
-        30.0f,								// length
+        50.0f,								// length (50)
         1.0f								// intensity
     };
 
@@ -210,7 +210,7 @@ void Game::CreateBasicGeometry()
 	auto e1 = gameFactory->CreateEntity("Models/Container.obj", paint, XMFLOAT2(4.6f, 9.4f));
 	collisionManager->addCollider(e1);
     entities.push_back(e1);
-	e1->SetTranslation(0.0f, 0.0f, 7.0f);
+	e1->SetTranslation(-15.0f, 0.0f, 100.0f);
 	e1->SetScale(XMFLOAT3(2.0f, 2.0f, 2.0f));
     
 	// cabin
@@ -218,32 +218,39 @@ void Game::CreateBasicGeometry()
 	collisionManager->addCollider(e2);
 	entities.push_back(e2);
 	e2->SetScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
-	e2->SetTranslation(10.0f, -2.0f, 0.0f);
+	e2->SetTranslation(100.0f, -2.0f, 70.0f);
 
 	// rock
-	auto e3 = gameFactory->CreateEntity("Models/Stone.obj", stone, 2.0f);
+	auto e3 = gameFactory->CreateEntity("Models/Stone.obj", stone, 6.0f);
 	collisionManager->addCollider(e3);
 	entities.push_back(e3);
-	e3->SetTranslation(-7.0f, -1.0f, -3.0f);
+	e3->SetScale(XMFLOAT3(3.0f, 3.0f, 3.0f));
+	e3->SetTranslation(70.0f, -1.0f, -25.0f);
+
+	auto rock = gameFactory->CreateEntity("Models/Stone.obj", stone, 1.5f);
+	collisionManager->addCollider(rock);
+	entities.push_back(rock);
+	rock->SetScale(XMFLOAT3(0.75f, 0.75f, 0.75f));
+	rock->SetTranslation(99.2f, -1.5f, 66.5f);
 
 	// tent
 	auto e4 = gameFactory->CreateEntity("Models/Tent.obj", tent, XMFLOAT2(5.2f,8.3f));
 	collisionManager->addCollider(e4);
 	entities.push_back(e4);
-	e4->SetTranslation(7.0f, -1.9f, 18.0f);
+	e4->SetTranslation(-90.0f, -1.9f, 18.0f);
 	e4->SetScale(XMFLOAT3(0.5f, 0.5f, 0.5f));
 
 	// tower
 	auto e5 = gameFactory->CreateEntity("Models/Tower.obj", tower, XMFLOAT2(5.5f, 5.5f));
 	collisionManager->addCollider(e5);
 	entities.push_back(e5);
-	e5->SetTranslation(-20.0f, -2.0f, 18.0f);
+	e5->SetTranslation(-3.0f, -2.0f, 8.0f);
 
 	// truck
 	auto e6 = gameFactory->CreateEntity("Models/Truck.obj", truck, XMFLOAT2(10.0f, 4.3f));
 	collisionManager->addCollider(e6);
 	entities.push_back(e6);
-	e6->SetTranslation(0.0f, -2.1f, -15.0f);
+	e6->SetTranslation(-40.0f, -2.1f, -80.0f);
  
 	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
     entities.push_back(groundEnt);
