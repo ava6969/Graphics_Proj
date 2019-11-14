@@ -3,17 +3,28 @@
 #include "Collider.h"
 #include "Entity.h"
 #include "Camera.h"
+#include "Quadtree.h"
 #include <DirectXMath.h>
 
 
 class CollisionManager
 {
 public:
-
+    CollisionManager();
 	CollisionManager(shared_ptr<Camera> cam);
+    ~CollisionManager();
+
 
 	void addCollider(shared_ptr <Entity> ent) {
 		if (ent->GetCollider() != nullptr) {
+
+            if (quad == NULL) {
+                quad = new Quadtree();
+                quad->CreateQuadtree(std::vector<Collider*>{ent->GetCollider()});
+            }
+            else {
+                quad->addToTree(ent->GetCollider());
+            }
 			collidableObjects.push_back(ent);
 		}
 	}
@@ -31,6 +42,8 @@ public:
 	// collision resolution
 	void ResolvePlayerCollision(Collider* other);
 private:
+
+    Quadtree* quad = NULL;
 	vector<shared_ptr<Entity>> collidableObjects;
 	shared_ptr<Camera> player;
 };

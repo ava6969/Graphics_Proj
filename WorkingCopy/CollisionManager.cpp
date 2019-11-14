@@ -2,9 +2,20 @@
 using namespace DirectX;
 
 
+CollisionManager::CollisionManager()
+{
+
+}
+
 CollisionManager::CollisionManager(shared_ptr<Camera> cam)
 {
+  
 	player = cam;
+}
+
+CollisionManager::~CollisionManager()
+{
+    delete quad;
 }
 
 
@@ -78,14 +89,18 @@ shared_ptr<Entity> CollisionManager::HandlePlayerCollisions(const char* tag )
 {
 	if (player->GetDebug()) return nullptr;
 	int i = 0;
-	for (auto itr : collidableObjects)
+
+    std::vector<Collider* > treeColliders = quad->GetCollidableObjects(player->GetCollider());
+
+	for (auto itr : treeColliders)
 	{
 		// circle collisions
-		if (itr->GetCollider()->GetType() == 0)
+		if (itr->GetType() == 0)
 		{
-			if (CircleToCircleCollision(player->GetCollider(), itr->GetCollider()))
+			if (CircleToCircleCollision(player->GetCollider(), itr))
 			{
-
+                ResolvePlayerCollision(itr);
+                /*
 				if (itr->getTag() == tag)
 				{
 					collidableObjects.erase(collidableObjects.begin() + i);
@@ -94,11 +109,12 @@ shared_ptr<Entity> CollisionManager::HandlePlayerCollisions(const char* tag )
 				else {
 					ResolvePlayerCollision(collidableObjects[i]->GetCollider());
 				}
+                */
 			}
 		}
 		else // AABB collision
 		{
-			CircleToSquareCollision(player->GetCollider(), itr->GetCollider());
+			CircleToSquareCollision(player->GetCollider(), itr);
 		}
 		i++;
 	}
