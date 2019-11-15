@@ -37,14 +37,15 @@ private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
-	void CreateMatrices();
 	void CreateBasicGeometry();
 	void DrawAText();
 	void SpawnLetters(float x,float y ,float z);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(shared_ptr<Entity> objectToDestroy);
 
-
+	std::vector<Light> lights;
+	void GenerateLights();
+	void DrawLightSources();
 	// Letter Stuffs
 	int letterCount;
 
@@ -53,11 +54,6 @@ private:
 	shared_ptr< SimplePixelShader> pixelShader;
     shared_ptr<SimpleVertexShader> skyVS;
 	shared_ptr<SimplePixelShader> skyPS;
-
-	// The matrices to go from model space to screen space
-	DirectX::XMFLOAT4X4 worldMatrix;
-	DirectX::XMFLOAT4X4 viewMatrix;
-	DirectX::XMFLOAT4X4 projectionMatrix;
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -73,12 +69,6 @@ private:
 	shared_ptr<Camera> camera;
 	bool cameraCanMove;
 
-	// materials
-	// TODO chnage to smart pointers
-	//Material* defaultMaterial;
-	//Material* floor;
-	//Material* paint;
-	//Material* brick;
 
 	shared_ptr<Material> defaultMaterial;
 	shared_ptr<Material> floor;
@@ -93,11 +83,7 @@ private:
 	shared_ptr<CollisionManager> collisionManager;
 
 
-	// lights
-	SpotLight flashlight;
-	DirectionalLight light2;
 
-	// TO DO Chhange to ComPtr and game Factory
 	// textures
 	ComPtr<ID3D11ShaderResourceView> copperRough;
 	ComPtr<ID3D11ShaderResourceView> copperMetallic;

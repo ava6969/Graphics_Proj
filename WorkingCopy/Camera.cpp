@@ -174,6 +174,22 @@ void Camera::Move(DirectX::XMFLOAT3 amount)
 	XMStoreFloat3(&position, XMVectorAdd(XMLoadFloat3(&position), XMLoadFloat3(&amount)));
 }
 
+void Camera::SendViewMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name)
+{
+	vs->SetMatrix4x4("view", viewMatrix);
+}
+
+void Camera::SendProjectionMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name)
+{
+	vs->SetMatrix4x4("projection", projectionMatrix);
+}
+
+void Camera::SendPositionToGPU(shared_ptr<SimplePixelShader> ps, const char* name)
+{
+	ps->SetFloat3(name, position);
+
+}
+
 DirectX::XMVECTOR Camera::MoveForwardBackwards(float amount)
 {
 	// convert to vectors

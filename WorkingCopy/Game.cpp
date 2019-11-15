@@ -50,16 +50,16 @@ void Game::Init()
     //  - You'll be expanding and/or replacing these later
 	gameFactory = make_shared<GameFactory>(device, context);
     LoadShaders();
-    //CreateMatrices();
     CreateBasicGeometry();
 
 	letterCount = 5;
-
+	GenerateLights();
     // Tell the input assembler stage of the pipeline what kind of
     // geometric primitives (points, lines or triangles) we want to draw.  
     // Essentially: "What kind of shape should the GPU draw with our data?"
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+<<<<<<< HEAD
     // set up the scene light
     flashlight = {
         XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
@@ -77,8 +77,11 @@ void Game::Init()
         XMFLOAT3(1.0f,-1.0f,1.0f),
         1.0f
     };
+=======
+};
 
-}
+>>>>>>> 387666c... Adjusted Code to be able to send Array of lights to PixelShader
+
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files using
 // my SimpleShader wrapper for DirectX shader manipulation.
@@ -154,50 +157,6 @@ void Game::LoadShaders()
 	skyPS->LoadShaderFile(L"PSSky.cso");
 
 	sky = gameFactory->CreateSkyBox(L"Textures/cubemap.dds", skyVS, skyPS);
-}
-
-
-
-// --------------------------------------------------------
-// Initializes the matrices necessary to represent our geometry's 
-// transformations and our 3D camera
-// --------------------------------------------------------
-void Game::CreateMatrices()
-{
-    // Set up world matrix
-    // - In an actual game, each object will need one of these and they should
-    //    update when/if the object moves (every frame)
-    // - You'll notice a "transpose" happening below, which is redundant for
-    //    an identity matrix.  This is just to show that HLSL expects a different
-    //    matrix (column major vs row major) than the DirectX Math library
-    XMMATRIX W = XMMatrixIdentity();
-    XMStoreFloat4x4(&worldMatrix, XMMatrixTranspose(W)); // Transpose for HLSL!
-
-    // Create the View matrix
-    // - In an actual game, recreate this matrix every time the camera 
-    //    moves (potentially every frame)
-    // - We're using the LOOK TO function, which takes the position of the
-    //    camera and the direction vector along which to look (as well as "up")
-    // - Another option is the LOOK AT function, to look towards a specific
-    //    point in 3D space
-    XMVECTOR pos = XMVectorSet(0, 0, -5, 0);
-    XMVECTOR dir = XMVectorSet(0, 0, 1, 0);
-    XMVECTOR up = XMVectorSet(0, 1, 0, 0);
-    XMMATRIX V = XMMatrixLookToLH(
-        pos,     // The position of the "camera"
-        dir,     // Direction the camera is looking
-        up);     // "Up" direction in 3D space (prevents roll)
-    XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(V)); // Transpose for HLSL!
-
-    // Create the Projection matrix
-    // - This should match the window's aspect ratio, and also update anytime
-    //    the window resizes (which is already happening in OnResize() below)
-    XMMATRIX P = XMMatrixPerspectiveFovLH(
-        0.25f * 3.1415926535f,		// Field of View Angle
-        (float)width / height,		// Aspect ratio
-        0.1f,						// Near clip plane distance
-        100.0f);					// Far clip plane distance
-    XMStoreFloat4x4(&projectionMatrix, XMMatrixTranspose(P)); // Transpose for HLSL!
 }
 
 
@@ -323,6 +282,26 @@ void Game::Destroy(shared_ptr<Entity> objectToDestroy)
 	}
 }
 
+void Game::GenerateLights()
+{
+	// Reset
+	lights.clear();
+
+	// set up the scene light
+	Light flashlight = gameFactory->CreateSpotlight(XMFLOAT3(0.0f, 0.0f, -3.0f),
+													XMFLOAT3(0.0f, 0.0f, 1.0f),
+													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,1.0f,50.f);
+	lights.push_back(flashlight);
+
+	Light directional = gameFactory->CreateDirectionalLight(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 1.0f);
+	lights.push_back(directional);
+
+
+}
+void Game::DrawLightSources()
+{
+
+}
 
 
 
@@ -387,8 +366,22 @@ void Game::Update(float deltaTime, float totalTime)
 
     camera->Update(deltaTime);
 
-    flashlight.Position = camera->GetPosition();
-	flashlight.Direction = camera->GetDirection();
+	// Update lights
+	for (int i = 0; i < lights.size(); i++)
+	{
+		if (lights[i].Type == LIGHT_TYPE_SPOT)
+		{
+		lights[i].Position = camera->GetPosition();
+		lights[i].Direction = camera->GetDirection();
+		}
+		else if (lights[i].Type == LIGHT_TYPE_POINT)
+		{
+			//
+		}
+
+	}
+
+
     frameCounter = frameCounter + deltaTime;
 
     // if letter is found
@@ -427,17 +420,28 @@ void Game::Draw(float deltaTime, float totalTime)
         D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
         1.0f,
         0);
+
+	// Set lights in the shader
+	pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
+	pixelShader->SetInt("LightCount", lights.size());
+
 	// Set buffers in the input assembler
 	//  - Do this ONCE PER OBJECT you're drawing, since each object might
 	//    have different geometry.
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
+
+
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
-        // prepare the material by setting the matrices and shaders
-        entities[i]->GetMaterial()->GetPixelShader()->SetFloat3("cameraPos", camera->GetPosition());
-        entities[i]->PrepareMaterial(camera->GetViewMatrix(), camera->GetProjectionMatrix(), &flashlight, &light2);
+        // prepare the material by setting the matrices and shaders in these order
+		
+		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
+		camera->SendViewMatrixToGPU(vertexShader, "view");
+		camera->SendProjectionMatrixToGPU(vertexShader, "projection");
+		camera->SendPositionToGPU(pixelShader, "cameraPos");
+        entities[i]->GetMaterial()->PrepareMaterial();
 
 
         // get a temp variable to access the buffer
@@ -466,7 +470,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
 
 	// Grab the data from the box mesh
-	auto skyMesh = gameFactory->CreateCubeMesh();
+	auto skyMesh = gameFactory->CreateSphereMesh();
 	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
 	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
 

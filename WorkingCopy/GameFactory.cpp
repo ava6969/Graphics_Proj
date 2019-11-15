@@ -128,3 +128,38 @@ shared_ptr<Material> GameFactory::CreateSkyBox(const wchar_t* ddsFile, shared_pt
 	return make_shared<Material>(vShader, pShader, skySRV, samplerOptions, skyRastState, skyDepthState);
 
 }
+
+Light GameFactory::CreateSpotlight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float range, float intensity, float spotFalloff)
+{
+	// Make a spot light, too
+	Light spot = {};
+	spot.Type = LIGHT_TYPE_SPOT;
+	spot.Position = position;
+	spot.Direction = direction;
+	spot.Color = color;
+	spot.Range = range;
+	spot.Intensity = intensity;
+	spot.SpotFalloff = spotFalloff;
+	return spot;
+}
+
+Light GameFactory::CreatePointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float range, float intensity)
+{
+	Light point = {};
+	point.Type = LIGHT_TYPE_POINT;
+	point.Position = position;
+	point.Color = color;
+	point.Range = range;
+	point.Intensity = intensity;
+	return point;
+}
+
+Light GameFactory::CreateDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity)
+{
+	Light dir = {};
+	dir.Type = LIGHT_TYPE_DIRECTIONAL;
+	dir.Direction = direction;
+	dir.Color = color;
+	dir.Intensity = intensity;
+	return dir;
+}
