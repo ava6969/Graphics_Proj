@@ -115,6 +115,11 @@ void Entity::ComputeWorldMatrix()
 	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
+DirectX::XMFLOAT3* Entity::GetPosition()
+{
+	return &position;
+}
+
 ID3D11Buffer* Entity::GetVertexBuffer()
 {
 	return mesh->GetVertexBuffer();

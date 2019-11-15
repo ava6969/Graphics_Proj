@@ -29,6 +29,7 @@ public:
 	void SetDirtyMatrix();
 	void ComputeWorldMatrix();
 	
+	DirectX::XMFLOAT3* GetPosition();
 	ID3D11Buffer* GetVertexBuffer();
 	ID3D11Buffer* GetIndexBuffer();
 	int GetIndexCount();

@@ -2,6 +2,9 @@
 #include "Entity.h"
 #include "Camera.h"
 #include <DirectXMath.h>
+//#include <algorithm.h>
+
+using namespace DirectX;
 
 struct AgroLevels {
 	std::vector<float> minRanges;
@@ -18,7 +21,7 @@ public:
 	bool stopTeleport;
 
 	void Update(float deltaTime);
-
+	void IncreaseLevel();
 
 
 private:
@@ -29,14 +32,17 @@ private:
 	float* staticAlpha;
 	float distance;
 	bool proximityCheck;
-	DirectX::XMFLOAT3 lastPos;
+	XMFLOAT3 lastPos;
 	float standingTimer;
+	XMFLOAT2 boundsMax;
+	XMFLOAT2 boundsMin;
+	bool isVisible;
 
 	void Teleport();
 	bool CheckLineOfSight();
 	void CheckForStatic();
-	void CheckForProximity();
-	void CheckStandingStill();
+	void CheckForProximity(float deltaTime);
+	void CheckStandingStill(float deltaTime);
 	void GetDistance();
 };
 
