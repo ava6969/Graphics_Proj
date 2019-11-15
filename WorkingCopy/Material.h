@@ -5,6 +5,8 @@
 #include "SimpleShader.h"
 #include "WICTextureLoader.h"
 #include <memory>
+#include "Camera.h"
+#include "Lights.h"
 
 using namespace std;
 using namespace DirectX;
@@ -17,7 +19,7 @@ public:
 	Material() = default;
 
 	Material(ID3D11DeviceContext* _context, ID3D11Device* _device, shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixelShader> pixel, ComPtr<ID3D11SamplerState> opt, DirectX::XMFLOAT3 spec):
-		context(_context),device(_device),vertexShader(vertex),pixelShader(pixel),samplerOptions(opt),specColor(spec),shininess(0.0f) {}
+		context(_context),device(_device),vertexShader(vertex),pixelShader(pixel),samplerOptions(opt),specColor(spec),shininess(NULL) {}
 
 
 	Material(shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixelShader> pixel, ComPtr<ID3D11ShaderResourceView> tex, ComPtr<ID3D11ShaderResourceView> norm, ComPtr<ID3D11ShaderResourceView> rough,
@@ -53,7 +55,7 @@ public:
 	inline ComPtr< ID3D11ShaderResourceView> GetRoughness() const { return roughness; }
 	inline ComPtr<ID3D11ShaderResourceView> GetMetalness() const { return metalness; }
 	inline DirectX::XMFLOAT3 GetSpecularColor() const { return specColor; }
-
+	void PrepareMaterial();
 
 
 protected:
@@ -61,7 +63,6 @@ protected:
 	// shader pointers
 	shared_ptr<SimpleVertexShader> vertexShader;
 	shared_ptr<SimplePixelShader> pixelShader;
-
 	ComPtr<ID3D11ShaderResourceView> texture;
 	ComPtr<ID3D11ShaderResourceView> normalMap;
 	ComPtr<ID3D11SamplerState> samplerOptions;

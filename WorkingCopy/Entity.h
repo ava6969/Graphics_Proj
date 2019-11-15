@@ -38,10 +38,10 @@ public:
 	int GetIndexCount();
 	shared_ptr<Material> GetMaterial();
 	Collider* GetCollider();
-	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, DirectionalLight* light2);
-	//void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight const& light, PointLight const& light2);
+
+	void SendWorldMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name);
 	inline const char* getTag() { return tag; }
-	inline DirectX::XMFLOAT3 GetPosition() const { return position; }
+	inline DirectX::XMFLOAT3 GetPosition() { return position; }
 
 
 private:

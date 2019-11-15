@@ -3,7 +3,7 @@
 #include "CollisionManager.h"
 #include "Vertex.h"
 #include <DirectXMath.h>
-
+#include "Lights.h"
 #include <wrl/client.h>
 
 
@@ -34,6 +34,11 @@ public:
 	shared_ptr<Material> CreateMaterial(shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader, XMFLOAT3 specColor);
 	shared_ptr<Material> CreateSkyBox(const wchar_t* ddsFile, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader);
 	inline shared_ptr<Mesh> CreateCubeMesh() { return make_shared<Mesh>("Models/cube.obj", device); }
+	inline shared_ptr<Mesh> CreateSphereMesh() { return make_shared<Mesh>("Models/sphere.obj", device); }
+
+	Light CreateSpotlight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction , DirectX::XMFLOAT3 color, float range, float intensity, float spotFalloff );
+	Light CreatePointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float range, float intensity);
+	Light CreateDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
 
 
 }; 
