@@ -28,7 +28,6 @@ bool CollisionManager::checkOverlap(shared_ptr<Entity> ent)
 		Collider* collision = checkOverlap(ent->GetCollider(), &radSum, &distSqr);
 		if (collision == NULL) {
 			return false;
-
 		}
 		
 		XMVECTOR myCenter = XMLoadFloat2(&entCol->GetCenter());

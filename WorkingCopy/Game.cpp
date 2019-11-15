@@ -58,29 +58,7 @@ void Game::Init()
     // geometric primitives (points, lines or triangles) we want to draw.  
     // Essentially: "What kind of shape should the GPU draw with our data?"
     context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-<<<<<<< HEAD
-    // set up the scene light
-    flashlight = {
-        XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
-        XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// diffuse
-        XMFLOAT3(0.0f,0.0f,-3.0f),			// position
-        50.0f,								// angle (50)
-        XMFLOAT3(0.0f, 0.0f, 1.0f),			// direction
-        50.0f,								// length (50)
-        1.0f								// intensity
-    };
-
-    light2 = {
-        XMFLOAT4(0.00f, 0.00f, 0.00f, 1.0f),
-        XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
-        XMFLOAT3(1.0f,-1.0f,1.0f),
-        1.0f
-    };
-=======
 };
-
->>>>>>> 387666c... Adjusted Code to be able to send Array of lights to PixelShader
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files using
@@ -294,7 +272,7 @@ void Game::GenerateLights()
 	lights.push_back(flashlight);
 
 	Light directional = gameFactory->CreateDirectionalLight(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 1.0f);
-	lights.push_back(directional);
+	//lights.push_back(directional);
 
 
 }

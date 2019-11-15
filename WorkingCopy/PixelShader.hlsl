@@ -233,8 +233,7 @@ float4 calculatePBRSpotlight(float3 n, float3 l, float3 v, float3 h, float rough
 
 	// calculate final result
 	float3 result = ((light.Color * tex) + diffuseAdjusted * tex * light.Color + specular) * att * spotAmount * light.Intensity;
-	// gamma correct
-	result = pow(result, 1.0f / 2.2f);
+
 	return float4(result, 1);
 }
 
@@ -310,8 +309,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 			break;
 		}
 	}
-
-	// Adjust the light color by the light amount
+	// final gamma correct
+	totalColor = pow(totalColor, 1.0f / 2.2f);
 	return float4(totalColor, 1);
 }
 
