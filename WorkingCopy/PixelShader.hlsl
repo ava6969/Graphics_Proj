@@ -232,7 +232,7 @@ float4 calculatePBRSpotlight(float3 n, float3 l, float3 v, float3 h, float rough
 	float att = saturate(1.0f - (dist * dist / (range * range)));
 
 	// calculate final result
-	float3 result = ((light.Color * tex) + diffuseAdjusted * tex * light.Color + specular) * att * spotAmount * light.Intensity;
+	float3 result = (diffuseAdjusted * tex * light.Color + specular) * att * spotAmount * light.Intensity;
 
 	return float4(result, 1);
 }

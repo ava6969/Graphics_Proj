@@ -90,6 +90,7 @@ shared_ptr<Entity> CollisionManager::HandlePlayerCollisions(const char* tag )
 	int i = 0;
 
     std::vector<Collider* > treeColliders = quad->GetCollidableObjects(player->GetCollider());
+	//printf("Objects: %i\n", treeColliders.size());
 
 	for (auto itr : treeColliders)
 	{
