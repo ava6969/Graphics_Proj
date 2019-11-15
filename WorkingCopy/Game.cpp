@@ -155,11 +155,13 @@ void Game::LoadShaders()
 
     CreateWICTextureFromFile(device, context, L"Textures/Brick.tif", 0, &floorSRV);
     CreateWICTextureFromFile(device, context, L"Textures/BrickN.tif", 0, &floorNSRV);
+	CreateWICTextureFromFile(device, context, L"Textures/slenderman.png", 0, &slendermanSRV);
 
 
     // make the material
     defaultMaterial = new Material(vertexShader, pixelShader, textureSRV, textureNSRV, samplerOptions, 256.0);
     floor = new Material(vertexShader, pixelShader, floorSRV, floorNSRV, samplerOptions, 256.0);
+	slendermanMaterial = new Material(vertexShader, pixelShader, slendermanSRV, slendermanNSRV, samplerOptions, 256.0);
 }
 
 
@@ -254,11 +256,11 @@ void Game::CreateBasicGeometry()
     meshes.push_back(mesh1);
     entities.push_back(e1);
 
-
-	const char* filename2 = "Models/slenderman.obj";
-	Mesh* mesh2 = new Mesh(filename, device);
-	Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
-	meshes.push_back(mesh2);
+	//Spawn Slenderman
+	const char* slendermanFile = "Models/slenderman.obj";
+	Mesh* slendermanMesh = new Mesh(slendermanFile, device);
+	Entity* e2 = new Entity(slendermanMesh, slendermanMaterial, 1.0f);
+	meshes.push_back(slendermanMesh);
 	entities.push_back(e2);
 
 
