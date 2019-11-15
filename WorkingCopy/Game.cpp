@@ -51,7 +51,7 @@ void Game::Init()
 	gameFactory = make_shared<GameFactory>(device, context);
 	LoadShaders();
 	CreateBasicGeometry();
-
+	lightCount = 0;
 	letterCount = 5;
 	GenerateLights();
 	// Tell the input assembler stage of the pipeline what kind of
@@ -271,16 +271,15 @@ void Game::GenerateLights()
 													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,1.0f,50.f);
 	lights.push_back(flashlight);
 
-	Light directional = gameFactory->CreateDirectionalLight(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 1.0f);
-	lights.push_back(directional);
+	//Light directional = gameFactory->CreateDirectionalLight(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 1.0f);
+	//lights.push_back(directional);
 
+
+
+	lightCount = lights.size();
+	lights.resize(MAX_LIGHTS);
 
 }
-void Game::DrawLightSources()
-{
-
-}
-
 
 
 void Game::SpawnLetters(float x, float y, float z)
@@ -345,7 +344,7 @@ void Game::Update(float deltaTime, float totalTime)
     camera->Update(deltaTime);
 
 	// Update lights
-	for (int i = 0; i < lights.size(); i++)
+	for (int i = 0; i < lightCount; i++)
 	{
 		if (lights[i].Type == LIGHT_TYPE_SPOT)
 		{
@@ -356,9 +355,12 @@ void Game::Update(float deltaTime, float totalTime)
 		{
 			//
 		}
+		else if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
+		{
+
+		}
 
 	}
-
 
     frameCounter = frameCounter + deltaTime;
 
@@ -401,7 +403,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	// Set lights in the shader
 	pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
-	pixelShader->SetInt("LightCount", lights.size());
+	pixelShader->SetInt("LightCount", lightCount);
+	camera->SendPositionToGPU(pixelShader, "cameraPos");
+	pixelShader->CopyBufferData("perFrame");
+
 
 	// Set buffers in the input assembler
 	//  - Do this ONCE PER OBJECT you're drawing, since each object might

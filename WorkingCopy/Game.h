@@ -13,7 +13,6 @@
 
 
 
-
 class Game 
 	: public DXCore
 {
@@ -45,7 +44,7 @@ private:
 
 	std::vector<Light> lights;
 	void GenerateLights();
-	void DrawLightSources();
+	int lightCount;
 	// Letter Stuffs
 	int letterCount;
 
