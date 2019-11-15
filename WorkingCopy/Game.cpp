@@ -45,42 +45,20 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 void Game::Init()
 {
-    // Helper methods for loading shaders, creating some basic
-    // geometry to draw and some simple camera matrices.
-    //  - You'll be expanding and/or replacing these later
+	// Helper methods for loading shaders, creating some basic
+	// geometry to draw and some simple camera matrices.
+	//  - You'll be expanding and/or replacing these later
 	gameFactory = make_shared<GameFactory>(device, context);
-    LoadShaders();
-    CreateBasicGeometry();
+	LoadShaders();
+	CreateBasicGeometry();
 
 	letterCount = 5;
 	GenerateLights();
-    // Tell the input assembler stage of the pipeline what kind of
-    // geometric primitives (points, lines or triangles) we want to draw.  
-    // Essentially: "What kind of shape should the GPU draw with our data?"
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-<<<<<<< HEAD
-    // set up the scene light
-    flashlight = {
-        XMFLOAT4(0.05f, 0.05f, 0.05f, 1.0f),	// ambient
-        XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),		// diffuse
-        XMFLOAT3(0.0f,0.0f,-3.0f),			// position
-        50.0f,								// angle (50)
-        XMFLOAT3(0.0f, 0.0f, 1.0f),			// direction
-        50.0f,								// length (50)
-        1.0f								// intensity
-    };
-
-    light2 = {
-        XMFLOAT4(0.00f, 0.00f, 0.00f, 1.0f),
-        XMFLOAT4(1.0f,1.0f,1.0f, 1.0f),
-        XMFLOAT3(1.0f,-1.0f,1.0f),
-        1.0f
-    };
-=======
-};
-
->>>>>>> 387666c... Adjusted Code to be able to send Array of lights to PixelShader
+	// Tell the input assembler stage of the pipeline what kind of
+	// geometric primitives (points, lines or triangles) we want to draw.  
+	// Essentially: "What kind of shape should the GPU draw with our data?"
+	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
 
 // --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files using
