@@ -49,6 +49,7 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	gameFactory = make_shared<GameFactory>(device, context);
+
 	LoadShaders();
 	CreateBasicGeometry();
 	lightCount = 0;
@@ -60,7 +61,6 @@ void Game::Init()
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 }
 
-// --------------------------------------------------------
 // Loads shaders from compiled shader object (.cso) files using
 // my SimpleShader wrapper for DirectX shader manipulation.
 // - SimpleShader provides helpful methods for sending
@@ -145,56 +145,59 @@ void Game::CreateBasicGeometry()
 {
 	// shipping container
 	auto e1 = gameFactory->CreateEntity("Models/Container.obj", paint, XMFLOAT2(4.6f, 9.4f));
-	collisionManager->addCollider(e1);
-    entities.push_back(e1);
 	e1->SetTranslation(-15.0f, 0.0f, 100.0f);
 	e1->SetScale(XMFLOAT3(2.0f, 2.0f, 2.0f));
+	collisionManager->addCollider(e1);
+    entities.push_back(e1);
     
 	// cabin
 	auto e2 = gameFactory->CreateEntity("Models/Cabin.obj", cabin, XMFLOAT2(5.5f, 7.8f));
-	collisionManager->addCollider(e2);
-	entities.push_back(e2);
 	e2->SetScale(XMFLOAT3(0.1f, 0.1f, 0.1f));
 	e2->SetTranslation(100.0f, -2.0f, 70.0f);
+	collisionManager->addCollider(e2);
+	entities.push_back(e2);
 
 	// rock
 	auto e3 = gameFactory->CreateEntity("Models/Stone.obj", stone, 6.0f);
-	collisionManager->addCollider(e3);
-	entities.push_back(e3);
 	e3->SetScale(XMFLOAT3(3.0f, 3.0f, 3.0f));
 	e3->SetTranslation(70.0f, -1.0f, -25.0f);
+	collisionManager->addCollider(e3);
+	entities.push_back(e3);
 
 	auto rock = gameFactory->CreateEntity("Models/Stone.obj", stone, 1.5f);
-	collisionManager->addCollider(rock);
-	entities.push_back(rock);
 	rock->SetScale(XMFLOAT3(0.75f, 0.75f, 0.75f));
 	rock->SetTranslation(99.2f, -1.5f, 66.5f);
+	collisionManager->addCollider(rock);
+	entities.push_back(rock);
 
 	// tent
 	auto e4 = gameFactory->CreateEntity("Models/Tent.obj", tent, XMFLOAT2(5.2f,8.3f));
-	collisionManager->addCollider(e4);
-	entities.push_back(e4);
 	e4->SetTranslation(-90.0f, -1.9f, 18.0f);
 	e4->SetScale(XMFLOAT3(0.5f, 0.5f, 0.5f));
+	collisionManager->addCollider(e4);
+	entities.push_back(e4);
 
 	// tower
 	auto e5 = gameFactory->CreateEntity("Models/Tower.obj", tower, XMFLOAT2(5.5f, 5.5f));
+	e5->SetTranslation(-3.0f, -2.0f, 8.0f);
 	collisionManager->addCollider(e5);
 	entities.push_back(e5);
-	e5->SetTranslation(-3.0f, -2.0f, 8.0f);
 
 	// truck
 	auto e6 = gameFactory->CreateEntity("Models/Truck.obj", truck, XMFLOAT2(10.0f, 4.3f));
+	e6->SetTranslation(-40.0f, -2.1f, -80.0f);
 	collisionManager->addCollider(e6);
 	entities.push_back(e6);
-	e6->SetTranslation(-40.0f, -2.1f, -80.0f);
  
 	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
     entities.push_back(groundEnt);
 
     SpawnTreeGrid(40, 40, 8);
-	SpawnLetters(0.0f, -1.0f, 30.0f);
-	SpawnLetters(10.0f,-1.0f, 10.0f);
+	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionIdentity());
+	SpawnLetters(97.3f, 0.0f, 70.0f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
+	SpawnLetters(70.0f, 0.0f, -30.8f, XMQuaternionIdentity());
+	SpawnLetters(-45.0f, 0.0f, -79.75f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
+	SpawnLetters(-90.0f, 0.0f, 22.0f, XMQuaternionIdentity());
 }
 
 
@@ -226,9 +229,9 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 
                 offsetX *= step / 2;
                 offsetZ *= step / 3;
+               
+                tree->SetTranslation(i + offsetX, -3, j + offsetZ);			
                 collisionManager->addCollider(tree);
-
-                tree->SetTranslation(i + offsetX, -3, j + offsetZ);				
                 entities.push_back(tree);
 
             }
@@ -271,18 +274,15 @@ void Game::GenerateLights()
 													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,1.0f,50.f);
 	lights.push_back(flashlight);
 
-	//Light directional = gameFactory->CreateDirectionalLight(XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT3(1.0f, 1.0f, 1.0f), 1.0f);
-	//lights.push_back(directional);
-
-
 
 	lightCount = lights.size();
 	lights.resize(MAX_LIGHTS);
 
+
 }
 
 
-void Game::SpawnLetters(float x, float y, float z)
+void Game::SpawnLetters(float x, float y, float z, XMVECTOR rotation)
 {
 
 	const float y_axis = 20.0f;
@@ -291,8 +291,11 @@ void Game::SpawnLetters(float x, float y, float z)
 	letter->SetTag("letter");
 	collisionManager->addCollider(letter);
 	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.02f);
+	XMFLOAT4 rot;
+	XMStoreFloat4(&rot, rotation);
 	letter->SetScale(SCALE);
 	letter->SetTranslation(x, y, z);
+	letter->SetRotation(rot);
 	entities.push_back(letter);
 
 }
@@ -371,7 +374,6 @@ void Game::Update(float deltaTime, float totalTime)
 		Destroy(objToRemove);
 	
 	}
-
 
     //float val = sin(frameCounter);
     //entities[0]->SetTranslation(XMFLOAT3(val - 0.5, 0, 0));

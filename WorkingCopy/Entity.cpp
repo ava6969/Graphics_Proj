@@ -73,6 +73,7 @@ DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
 void Entity::SetTranslation(DirectX::XMFLOAT3 tran)
 {
 	position = tran;
+
 	SetDirtyMatrix();
 }
 
@@ -157,6 +158,8 @@ shared_ptr<Material> Entity::GetMaterial()
 
 Collider* Entity::GetCollider()
 {
+    collider->SetCenter(XMFLOAT2(position.x, position.z));
+    
 	return collider;
 }
 

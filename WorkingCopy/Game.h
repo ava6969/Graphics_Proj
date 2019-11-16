@@ -38,7 +38,7 @@ private:
 	void LoadShaders(); 
 	void CreateBasicGeometry();
 	void DrawAText();
-	void SpawnLetters(float x,float y ,float z);
+	void SpawnLetters(float x,float y ,float z, XMVECTOR rotation);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(shared_ptr<Entity> objectToDestroy);
 

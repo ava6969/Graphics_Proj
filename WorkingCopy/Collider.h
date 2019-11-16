@@ -24,7 +24,13 @@ public:
 private:
 	float radius;
 	DirectX::XMFLOAT2 center;
-	int type; // 0 = circle, 1 = rectangle
+    enum types
+    {
+        circle = 0,
+        rect = 1
+    }; 
+    types type;
+    // 0 = circle, 1 = rectangle
 	DirectX::XMFLOAT2 size; // x = x, y = z
 };
 

@@ -26,14 +26,22 @@ cbuffer perFrame : register(b1)
 };
 
 
-// Defines the input to this pixel shader
+// Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
+// - The name of the struct itself is unimportant
+// - The variable names don't have to match other shaders (just the semantics)
+// - Each variable must have a semantic, which defines its usage
 struct VertexToPixel
 {
+	// Data type
+	//  |
+	//  |   Name          Semantic
+	//  |    |                |
+	//  v    v                v
 	float4 position		: SV_POSITION;
 	float3 normal		: NORMAL;
 	float2 uv			: TEXCOORD;
-	float3 worldPos		: POSITION; // The world position of this PIXEL
+	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
 };
 
@@ -45,7 +53,8 @@ Texture2D roughnessMap		: register(t2);
 Texture2D metalnessMap		: register(t3);
 SamplerState basicSampler	: register(s0);
 
-// Entry point for this pixel shader
+
+
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Fix for poor normals: re-normalizing interpolated normals
@@ -61,19 +70,11 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample the metal map
 	float metalness = metalnessMap.Sample(basicSampler, input.uv).r;
 
-	
-	// Actually using texture?
-	//surfaceColor.rgb = lerp(Color.rgb, surfaceColor.rgb, UseTexture);
-
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
-	//float3 specColor = lerp(F0_NON_METAL.rrr, surfaceColor.rgb, metal);
-
 	float3 specColor = surfaceColor.rgb;
 
 	// Total color for this pixel
-	float3 totalColor = float3(0,0,0);
-
-	// Loop through all lights this frame
+	float3 totalColor = float3(0, 0, 0);
 	for (int i = 0; i < LightCount; i++)
 	{
 		// Which kind of light?
@@ -92,8 +93,8 @@ float4 main(VertexToPixel input) : SV_TARGET
 			break;
 		}
 	}
-
-	// Adjust the light color by the light amount
-	float3 gammaCorrect = pow(totalColor, 1.0 / 2.2);
-	return float4(gammaCorrect, 1);
+	// final gamma correct
+	totalColor = pow(totalColor, 1.0f / 2.2f);
+	return float4(totalColor, 1);
 }
+
