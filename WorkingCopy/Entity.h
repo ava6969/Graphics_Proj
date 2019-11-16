@@ -32,6 +32,7 @@ public:
 	void SetDirtyMatrix();
 	void ComputeWorldMatrix();
 	inline void SetTag(const char* tag) { this->tag = tag; };
+	void CheckForDraw(std::shared_ptr<Camera> cam, float renderDistance);
 
 	ID3D11Buffer* GetVertexBuffer();
 	ID3D11Buffer* GetIndexBuffer();
@@ -41,6 +42,7 @@ public:
 
 	void SendWorldMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name);
 	inline const char* getTag() { return tag; }
+	inline bool GetDraw() { return doRender; }
 	inline DirectX::XMFLOAT3 GetPosition() { return position; }
 
 
@@ -55,7 +57,7 @@ private:
 	Collider* collider;
 	// tag that describes entity
 	const char* tag;
-
+	bool doRender;
 	
 };
 

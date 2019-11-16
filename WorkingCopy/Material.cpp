@@ -14,6 +14,7 @@ Material::Material(shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixel
 	shininess = shine;
 	roughness = rough;
 	metalness = metal;
+	usePBR = 1;
 }
 
 Material::Material(shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixelShader> pixel, ComPtr<ID3D11ShaderResourceView> tex, ComPtr<ID3D11ShaderResourceView> norm, ComPtr<ID3D11SamplerState> opt, float shine)
@@ -24,7 +25,7 @@ Material::Material(shared_ptr<SimpleVertexShader> vertex, shared_ptr<SimplePixel
 		normalMap = norm;
 		samplerOptions = opt;
 		shininess = shine;
-
+		usePBR = 1;
 }
 
 
@@ -39,6 +40,11 @@ void Material::SetVertexShader(shared_ptr<SimpleVertexShader> v)
 void Material::SetPixelShader(shared_ptr<SimplePixelShader> p)
 {
 	pixelShader = p;
+}
+
+void Material::SetUsePBR(int val)
+{
+	usePBR = val;
 }
 
 void Material::AddTextureProperties(const wchar_t* file, MATERIAL_FEATURES options)
@@ -90,6 +96,7 @@ void Material::PrepareMaterial()
 	pixelShader->SetShaderResourceView("diffuseTexture", texture.Get());
 	pixelShader->SetShaderResourceView("normalMap", normalMap.Get());
 	pixelShader->SetSamplerState("basicSampler", samplerOptions.Get());
+	pixelShader->SetInt("UsePBR", usePBR);
 
 
 	// Once you've set all of the data you care to change for

@@ -23,6 +23,7 @@ cbuffer perFrame : register(b1)
 	// Needed for specular (reflection) calculation
 	float3 CameraPosition;
 
+	int UsePBR;
 };
 
 
@@ -89,7 +90,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 			break;
 
 		case LIGHT_TYPE_SPOT:
-			totalColor += SpotLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+			if (UsePBR) {
+				totalColor += SpotLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+			}
+			else {
+				totalColor += SpotLight(Lights[i], input.normal, input.worldPos, CameraPosition, 1.0f, roughness, surfaceColor.rgb);
+			}
 			break;
 		}
 	}

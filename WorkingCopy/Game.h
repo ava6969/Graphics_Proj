@@ -81,7 +81,8 @@ private:
 	shared_ptr<Material> truck;
 	shared_ptr<CollisionManager> collisionManager;
 
-
+	// skybox mesh
+	shared_ptr<Mesh> skyMesh;
 
 	// textures
 	ComPtr<ID3D11ShaderResourceView> copperRough;

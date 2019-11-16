@@ -143,6 +143,9 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
+	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
+	entities.push_back(groundEnt);
+
 	// shipping container
 	auto e1 = gameFactory->CreateEntity("Models/Container.obj", paint, XMFLOAT2(4.6f, 9.4f));
 	e1->SetTranslation(-15.0f, 0.0f, 100.0f);
@@ -188,16 +191,15 @@ void Game::CreateBasicGeometry()
 	e6->SetTranslation(-40.0f, -2.1f, -80.0f);
 	collisionManager->addCollider(e6);
 	entities.push_back(e6);
- 
-	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
-    entities.push_back(groundEnt);
 
-    SpawnTreeGrid(40, 40, 8);
+    SpawnTreeGrid(150, 150, 8);
 	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionIdentity());
 	SpawnLetters(97.3f, 0.0f, 70.0f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
 	SpawnLetters(70.0f, 0.0f, -30.8f, XMQuaternionIdentity());
 	SpawnLetters(-45.0f, 0.0f, -79.75f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
 	SpawnLetters(-90.0f, 0.0f, 22.0f, XMQuaternionIdentity());
+
+	skyMesh = gameFactory->CreateSphereMesh();
 }
 
 
@@ -351,12 +353,12 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		if (lights[i].Type == LIGHT_TYPE_SPOT)
 		{
-		lights[i].Position = camera->GetPosition();
-		lights[i].Direction = camera->GetDirection();
+			lights[i].Position = camera->GetPosition();
+			lights[i].Direction = camera->GetDirection();
 		}
 		else if (lights[i].Type == LIGHT_TYPE_POINT)
 		{
-			//
+			
 		}
 		else if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
 		{
@@ -381,6 +383,7 @@ void Game::Update(float deltaTime, float totalTime)
     //entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
+		entities[i]->CheckForDraw(camera, 3000.0f);
     }
 }
 
@@ -406,7 +409,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Set lights in the shader
 	pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
 	pixelShader->SetInt("LightCount", lightCount);
-	camera->SendPositionToGPU(pixelShader, "cameraPos");
+	camera->SendPositionToGPU(pixelShader, "CameraPosition");
 	pixelShader->CopyBufferData("perFrame");
 
 
@@ -417,15 +420,16 @@ void Game::Draw(float deltaTime, float totalTime)
 	UINT offset = 0;
 
 
-
+	int drawn = 0;
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
         // prepare the material by setting the matrices and shaders in these order
-		
+		if (!entities[i]->GetDraw() && i > 0) continue;
+		drawn++;
 		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
 		camera->SendViewMatrixToGPU(vertexShader, "view");
 		camera->SendProjectionMatrixToGPU(vertexShader, "projection");
-		camera->SendPositionToGPU(pixelShader, "cameraPos");
+		camera->SendPositionToGPU(pixelShader, "CameraPosition");
         entities[i]->GetMaterial()->PrepareMaterial();
 
 
@@ -446,7 +450,7 @@ void Game::Draw(float deltaTime, float totalTime)
             0,     // Offset to the first index we want to use
             0);    // Offset to add to each index when looking up vertices
     }
-
+	printf("Drawn Entities: %i\n", drawn);
 	// === Sky box drawing ======================
 // Draw the sky AFTER everything else to prevent overdraw
 
@@ -455,7 +459,6 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
 
 	// Grab the data from the box mesh
-	auto skyMesh = gameFactory->CreateSphereMesh();
 	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
 	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
 

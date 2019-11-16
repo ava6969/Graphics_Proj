@@ -37,7 +37,7 @@ public:
 	// setters // todo chnage to smartPtrs and ComPtrs
 	void SetVertexShader(shared_ptr<SimpleVertexShader> v);
 	void SetPixelShader(shared_ptr<SimplePixelShader> p);
-
+	void SetUsePBR(int val);
 	void AddTextureProperties(const wchar_t* file, MATERIAL_FEATURES options);
 
 
@@ -79,5 +79,7 @@ protected:
 
 	ID3D11DeviceContext* context;
 	ID3D11Device* device;
+
+	int usePBR;
 };
 

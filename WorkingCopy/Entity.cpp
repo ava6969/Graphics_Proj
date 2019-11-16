@@ -36,6 +36,8 @@ Entity::Entity(std::shared_ptr<Mesh> m, std::shared_ptr < Material> mat, float r
 	material = mat;
 
 	collider = new Collider(rad);
+
+	doRender = true;
 }
 
 Entity::Entity(shared_ptr<Mesh> m, shared_ptr<Material> mat, DirectX::XMFLOAT2 s)
@@ -134,6 +136,34 @@ void Entity::ComputeWorldMatrix()
 	isDirty = false;
 
 	collider->SetCenter(XMFLOAT2(position.x, position.z));
+}
+
+void Entity::CheckForDraw(std::shared_ptr<Camera> cam, float renderDistance)
+{
+	XMVECTOR camPos = XMLoadFloat3(&cam->GetPosition());
+	XMVECTOR camForward = XMLoadFloat3(&cam->GetDirection());
+	XMVECTOR entPos = XMLoadFloat3(&position);
+	// are we in front or behind of the player?
+	XMVECTOR dotResult = XMVector3Dot(camForward, entPos - camPos);
+	XMFLOAT3 fResult;
+	XMStoreFloat3(&fResult, dotResult);
+	// don't draw if behind
+	if (fResult.x < 0)
+	{
+		doRender = false;
+		return;
+	}
+	// in front, but is it too far away?
+	XMVECTOR lengthResult = XMVector3LengthSq(entPos - camPos);
+	XMStoreFloat3(&fResult, lengthResult);
+	// if greater than set value, don't draw
+	if (fResult.x > renderDistance)
+	{
+		doRender = false;
+		return;
+	}
+
+	doRender = true;
 }
 
 ID3D11Buffer* Entity::GetVertexBuffer()
