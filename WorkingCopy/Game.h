@@ -73,12 +73,14 @@ private:
 	shared_ptr<Material> floor;
 	shared_ptr<Material> sky;
 	shared_ptr<Material> paint;
-	shared_ptr<Material> brick;
+	shared_ptr<Material> grass;
 	shared_ptr<Material> cabin;
 	shared_ptr<Material> stone;
 	shared_ptr<Material> tent;
 	shared_ptr<Material> tower;
 	shared_ptr<Material> truck;
+	shared_ptr<Material> treeMat;
+	shared_ptr<Material> note;
 	shared_ptr<CollisionManager> collisionManager;
 
 	// skybox mesh

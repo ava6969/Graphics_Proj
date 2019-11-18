@@ -78,12 +78,14 @@ void Game::LoadShaders()
 
 	defaultMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
 	paint = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.07f, 0.07f, 0.07f));
-	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
+	grass = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.01f, 0.01f, 0.01f));
 	cabin = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
 	stone = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	tent = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
 	tower = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	truck = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
+	treeMat = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.01f, 0.01f, 0.01f));
+	note = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	
 	// load the textures and bump maps
 	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
@@ -97,10 +99,10 @@ void Game::LoadShaders()
 	paint->AddTextureProperties(L"Textures/ContainerR.png", MATERIAL_FEATURES::ROUGHNESS);
 	paint->AddTextureProperties(L"Textures/ContainerM.png", MATERIAL_FEATURES::METALNESS);
 
-	brick->AddTextureProperties(L"Textures/Brick2.tif", MATERIAL_FEATURES::TEXTURE);
-	brick->AddTextureProperties(L"Textures/Brick2N.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::ROUGHNESS);
-	brick->AddTextureProperties(L"Textures/Brick2R.tif", MATERIAL_FEATURES::METALNESS);
+	grass->AddTextureProperties(L"Textures/GrassA.tif", MATERIAL_FEATURES::TEXTURE);
+	grass->AddTextureProperties(L"Textures/GrassN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	grass->AddTextureProperties(L"Textures/MaxRough.tif", MATERIAL_FEATURES::ROUGHNESS);
+	grass->AddTextureProperties(L"Textures/NonMetal.tif", MATERIAL_FEATURES::METALNESS);
 
 	cabin->AddTextureProperties(L"Textures/WoodCabinA.jpg", MATERIAL_FEATURES::TEXTURE);
 	cabin->AddTextureProperties(L"Textures/WoodCabinN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
@@ -109,7 +111,7 @@ void Game::LoadShaders()
 
 	stone->AddTextureProperties(L"Textures/StoneA.jpg", MATERIAL_FEATURES::TEXTURE);
 	stone->AddTextureProperties(L"Textures/StoneN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	stone->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::ROUGHNESS);
+	stone->AddTextureProperties(L"Textures/MaxRough.tif", MATERIAL_FEATURES::ROUGHNESS);
 	stone->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
 	tent->AddTextureProperties(L"Textures/TentA.jpg", MATERIAL_FEATURES::TEXTURE);
@@ -124,8 +126,18 @@ void Game::LoadShaders()
 
 	truck->AddTextureProperties(L"Textures/oil-truck.tif", MATERIAL_FEATURES::TEXTURE);
 	truck->AddTextureProperties(L"Textures/oil-truckNrml.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	truck->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::ROUGHNESS);
-	truck->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+	truck->AddTextureProperties(L"Textures/oil-truckR.tif", MATERIAL_FEATURES::ROUGHNESS);
+	truck->AddTextureProperties(L"Textures/oil-truckM.tif", MATERIAL_FEATURES::METALNESS);
+
+	treeMat->AddTextureProperties(L"Textures/BarkA.tif", MATERIAL_FEATURES::TEXTURE);
+	treeMat->AddTextureProperties(L"Textures/BarkN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	treeMat->AddTextureProperties(L"Textures/BarkR.tif", MATERIAL_FEATURES::ROUGHNESS);
+	treeMat->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	note->AddTextureProperties(L"Textures/Note.jpg", MATERIAL_FEATURES::TEXTURE);
+	note->AddTextureProperties(L"Textures/CopprN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	note->AddTextureProperties(L"Textures/BarkR.tif", MATERIAL_FEATURES::ROUGHNESS);
+	note->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
 
 	skyVS = make_shared< SimpleVertexShader >(device, context);
@@ -143,7 +155,7 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	auto groundEnt = gameFactory->CreateFloor(brick, 0.0f);
+	auto groundEnt = gameFactory->CreateFloor(grass, 0.0f);
 	entities.push_back(groundEnt);
 
 	// shipping container
@@ -193,11 +205,11 @@ void Game::CreateBasicGeometry()
 	entities.push_back(e6);
 
     SpawnTreeGrid(150, 150, 8);
-	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionIdentity());
-	SpawnLetters(97.3f, 0.0f, 70.0f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
-	SpawnLetters(70.0f, 0.0f, -30.8f, XMQuaternionIdentity());
-	SpawnLetters(-45.0f, 0.0f, -79.75f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 0.0f));
-	SpawnLetters(-90.0f, 0.0f, 22.0f, XMQuaternionIdentity());
+	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 3.1415926f / 2.0f));
+	SpawnLetters(97.3f, 0.0f, 70.0f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 3.1415926f / 2.0f));
+	SpawnLetters(70.0f, 0.0f, -30.8f, XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 3.1415926f / 2.0f));
+	SpawnLetters(-45.0f, 0.0f, -79.75f, XMQuaternionRotationRollPitchYaw(0.0f, 3.1415926f / 2.0f, 3.1415926f / 2.0f));
+	SpawnLetters(-90.0f, 0.0f, 22.0f, XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 3.1415926f / 2.0f));
 
 	skyMesh = gameFactory->CreateSphereMesh();
 }
@@ -223,7 +235,7 @@ void Game::SpawnTreeGrid(int x, int y, int step)
         for (int j = -y; j <= y; j += step) {
             float spawnSeed = (rand() % 100 + 1) / spawnStrenght;
             if (spawnSeed <= spawnChance) {
-				auto tree = gameFactory->CreateTree(defaultMaterial, 1.0f);
+				auto tree = gameFactory->CreateTree(treeMat, 1.0f);
 				tree->SetTag("tree");
                 spawnStrenght = 1;
                 float offsetX = (rand() % 10 + 1) / 10.0f;
@@ -289,10 +301,10 @@ void Game::SpawnLetters(float x, float y, float z, XMVECTOR rotation)
 
 	const float y_axis = 20.0f;
 	// create a mesh for letters and push to vector of meshes
-	auto letter = gameFactory->CreateLetter(defaultMaterial, 1.0f);
+	auto letter = gameFactory->CreateLetter(note, 1.0f);
 	letter->SetTag("letter");
 	collisionManager->addCollider(letter);
-	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.5f, 0.02f);
+	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.35f, 0.02f);
 	XMFLOAT4 rot;
 	XMStoreFloat4(&rot, rotation);
 	letter->SetScale(SCALE);
