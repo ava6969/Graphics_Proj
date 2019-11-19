@@ -395,7 +395,7 @@ void Game::Update(float deltaTime, float totalTime)
     //entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
-		entities[i]->CheckForDraw(camera, 3000.0f);
+		entities[i]->CheckForDraw(camera, 8000.0f);
     }
 }
 
@@ -436,7 +436,7 @@ void Game::Draw(float deltaTime, float totalTime)
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
         // prepare the material by setting the matrices and shaders in these order
-		if (!entities[i]->GetDraw() && i > 0) continue;
+		if (!entities[i]->GetDraw() && i > 7) continue;
 		drawn++;
 		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
 		camera->SendViewMatrixToGPU(vertexShader, "view");
