@@ -257,21 +257,21 @@ void Game::CreateBasicGeometry()
     meshes.push_back(mesh1);
     entities.push_back(e1);
 
-	const char* filename2 = "Models/slenderman.obj";
+	/*const char* filename2 = "Models/slenderman.obj";
 	Mesh* mesh2 = new Mesh(filename, device);
-	/*Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
+	Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
 	meshes.push_back(mesh2);
 	entities.push_back(e2);*/
 
 // Home PC stuff
 	//Spawn Slenderman
-	/*const char* slendermanFile = "Models/slenderman.obj";
+	const char* slendermanFile = "Models/slenderman.obj";
 	Mesh* slendermanMesh = new Mesh(slendermanFile, device);
-	Entity* e2 = new Entity(slendermanMesh, slendermanMaterial, 1.0f);
+	/*Entity* e2 = new Entity(slendermanMesh, slendermanMaterial, 1.0f);
 	meshes.push_back(slendermanMesh);
 	entities.push_back(e2);*/
 
-	slenderMan = new SlenderMan(mesh1, defaultMaterial, 1.0f, camera);
+	slenderMan = new SlenderMan(slendermanMesh, slendermanMaterial, 1.0f, camera);
 	entities.push_back(slenderMan);
 
 
@@ -293,7 +293,7 @@ void Game::CreateBasicGeometry()
     meshes.push_back(groundMesh);
     entities.push_back(groundEnt);
 
-    SpawnTreeGrid(40, 40, 8);
+    //SpawnTreeGrid(40, 40, 8);
 
 }
 

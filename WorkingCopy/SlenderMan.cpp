@@ -11,7 +11,7 @@ SlenderMan::SlenderMan(Mesh* m, Material* mat, float rad, Camera* player)
 {
 	this->player = player;
 	// Don't think a reference to Game is needed
-	agroLevel = 3;
+	agroLevel = 0;
 	staticAlpha = 0;
 	distance = 0;
 	proximityCheck = false;
@@ -43,6 +43,8 @@ SlenderMan::SlenderMan(Mesh* m, Material* mat, float rad, Camera* player)
 
 	timer = 0.0f;
 	stopTeleport = false;
+
+	SetTranslation(0.0f, -2.0f, 0.0f);
 }
 
 SlenderMan::~SlenderMan()
@@ -78,7 +80,7 @@ void SlenderMan::Teleport()
 	// Get forward vector then make inverse
 	XMFLOAT3 behindTemp = player->GetDirection();
 	behindTemp.x *= -1;
-	//behindTemp.y *= -1;
+	behindTemp.y = 0.0f;
 	behindTemp.z *= -1;
 
 	XMVECTOR behind = XMLoadFloat3(&behindTemp);
@@ -98,11 +100,14 @@ void SlenderMan::Teleport()
 	// Get point on unit circle
 	XMVECTOR target = XMVector3Rotate(behind, angleRot);
 
-	float val = rand() % (int)levels.maxRanges[agroLevel] + (int)levels.minRanges[agroLevel];
+	XMFLOAT3 targetTemp;
+
+	float val = rand() % 10 + (int)levels.minRanges[agroLevel];
 	target = XMVector3Normalize(target);
 	target *= val;
+	XMStoreFloat3(&targetTemp, target);
 
-	XMVECTOR newPosTemp =  XMLoadFloat3(&player->GetPosition()) + target;
+	XMVECTOR newPosTemp =  XMLoadFloat3(&player->GetPosition()) - target;
 
 	float distanceFromEdge = 10;
 	XMFLOAT3 maxPosTemp = XMFLOAT3(boundsMax.x, 0.0f, boundsMax.y);
