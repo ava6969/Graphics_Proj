@@ -75,6 +75,7 @@ private:
 
 	// materials
 	Material* defaultMaterial;
+	Material* slendermanMaterial;
 	Material* floor;
 
 	CollisionManager* collisionManager;
@@ -88,6 +89,8 @@ private:
 	ID3D11ShaderResourceView* textureNSRV;
 	ID3D11ShaderResourceView* floorSRV;
 	ID3D11ShaderResourceView* floorNSRV;
+	ID3D11ShaderResourceView* slendermanSRV;
+	ID3D11ShaderResourceView* slendermanNSRV;
 	ID3D11SamplerState* samplerOptions;
 
 	int numNotesCollected;		// Number of notes collected
