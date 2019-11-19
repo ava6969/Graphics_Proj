@@ -2,7 +2,7 @@
 #include "Entity.h"
 #include "Camera.h"
 #include <DirectXMath.h>
-//#include <algorithm.h>
+#include <algorithm>
 
 using namespace DirectX;
 
@@ -22,11 +22,11 @@ public:
 
 	void Update(float deltaTime);
 	void IncreaseLevel();
+	//static AgroLevels levels;
 
 
 private:
 	Camera* player;
-	AgroLevels levels;
 	int agroLevel;
 	float timer;
 	float* staticAlpha;

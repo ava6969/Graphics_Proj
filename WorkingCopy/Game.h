@@ -9,6 +9,7 @@
 #include "Material.h"
 #include "Lights.h"
 #include "CollisionManager.h"
+#include "SlenderMan.h"
 
 class Game 
 	: public DXCore
@@ -93,5 +94,7 @@ private:
 	bool leftBracketPressed;
 	bool rightBracketPressed;
 	float percentStatic;			// Number to control how much static
+
+	SlenderMan* slenderMan;
 };
 

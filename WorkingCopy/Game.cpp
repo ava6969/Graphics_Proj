@@ -68,6 +68,7 @@ Game::~Game()
     delete defaultMaterial;
     delete floor;
     delete collisionManager;
+	//delete slenderMan;
     textureSRV->Release();
     textureNSRV->Release();
     floorSRV->Release();
@@ -257,11 +258,12 @@ void Game::CreateBasicGeometry()
 
 	const char* filename2 = "Models/slenderman.obj";
 	Mesh* mesh2 = new Mesh(filename, device);
-	Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
+	/*Entity* e2 = new Entity(mesh2, defaultMaterial, 1.0f);
 	meshes.push_back(mesh2);
-	entities.push_back(e2);
+	entities.push_back(e2);*/
 
-
+	slenderMan = new SlenderMan(mesh1, defaultMaterial, 1.0f, camera);
+	entities.push_back(slenderMan);
 
 
     collisionManager->addCollider(e1->GetCollider());
@@ -366,6 +368,7 @@ void Game::IncrementLevelManually()
 	}
 }
 
+// Affects the amount of static on the screen
 void Game::ChangeStatic()
 {
 }
@@ -415,6 +418,8 @@ void Game::Update(float deltaTime, float totalTime)
     }
 
 	IncrementLevelManually();
+
+	slenderMan->Update(deltaTime);
 }
 
 // --------------------------------------------------------
