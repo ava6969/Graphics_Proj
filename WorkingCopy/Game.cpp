@@ -86,6 +86,7 @@ void Game::LoadShaders()
 	truck = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
 	treeMat = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.01f, 0.01f, 0.01f));
 	note = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
+	lamp = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	
 	// load the textures and bump maps
 	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
@@ -138,6 +139,11 @@ void Game::LoadShaders()
 	note->AddTextureProperties(L"Textures/CopprN.tif", MATERIAL_FEATURES::NORMAL_MAP);
 	note->AddTextureProperties(L"Textures/BarkR.tif", MATERIAL_FEATURES::ROUGHNESS);
 	note->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	lamp->AddTextureProperties(L"Textures/LampA.png", MATERIAL_FEATURES::TEXTURE);
+	lamp->AddTextureProperties(L"Textures/LampN.png", MATERIAL_FEATURES::NORMAL_MAP);
+	lamp->AddTextureProperties(L"Textures/LampR.png", MATERIAL_FEATURES::ROUGHNESS);
+	lamp->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
 
 	skyVS = make_shared< SimpleVertexShader >(device, context);
@@ -203,6 +209,13 @@ void Game::CreateBasicGeometry()
 	e6->SetTranslation(-40.0f, -2.1f, -80.0f);
 	collisionManager->addCollider(e6);
 	entities.push_back(e6);
+
+	// lamp
+	auto e7 = gameFactory->CreateEntity("Models/Lamp.obj", lamp, 0.1f);
+	e7->SetTranslation(99.3f, -0.1f, 66.3f);
+	e7->SetScale(XMFLOAT3(0.25f, 0.25f, 0.25f));
+	collisionManager->addCollider(e7);
+	entities.push_back(e7);
 
     SpawnTreeGrid(150, 150, 8);
 	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 3.1415926f / 2.0f));
@@ -288,6 +301,8 @@ void Game::GenerateLights()
 													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,1.0f,50.f);
 	lights.push_back(flashlight);
 
+	Light lampLight = gameFactory->CreatePointLight(XMFLOAT3(99.3f, -0.1f, 66.0f), XMFLOAT3(1.0f, 1.0f, 0.0f), 10.0f, 1.0f);
+	lights.push_back(lampLight);
 
 	lightCount = lights.size();
 	lights.resize(MAX_LIGHTS);
@@ -436,7 +451,7 @@ void Game::Draw(float deltaTime, float totalTime)
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
         // prepare the material by setting the matrices and shaders in these order
-		if (!entities[i]->GetDraw() && i > 7) continue;
+		if (!entities[i]->GetDraw() && i > 8) continue;
 		drawn++;
 		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
 		camera->SendViewMatrixToGPU(vertexShader, "view");

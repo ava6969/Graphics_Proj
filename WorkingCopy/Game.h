@@ -81,6 +81,7 @@ private:
 	shared_ptr<Material> truck;
 	shared_ptr<Material> treeMat;
 	shared_ptr<Material> note;
+	shared_ptr<Material> lamp;
 	shared_ptr<CollisionManager> collisionManager;
 
 	// skybox mesh
