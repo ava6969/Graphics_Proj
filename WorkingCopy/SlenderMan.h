@@ -44,5 +44,6 @@ private:
 	void CheckForProximity(float deltaTime);
 	void CheckStandingStill(float deltaTime);
 	void GetDistance();
+	void TurnToFacePlayer();
 };
 

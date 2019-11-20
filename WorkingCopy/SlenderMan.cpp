@@ -11,7 +11,7 @@ SlenderMan::SlenderMan(Mesh* m, Material* mat, float rad, Camera* player)
 {
 	this->player = player;
 	// Don't think a reference to Game is needed
-	agroLevel = 0;
+	agroLevel = 3;
 	staticAlpha = 0;
 	distance = 0;
 	proximityCheck = false;
@@ -116,8 +116,8 @@ void SlenderMan::Teleport()
 	XMStoreFloat3(&newPos, newPosTemp);
 	newPos.x = std::clamp(newPos.x, boundsMin.x + distanceFromEdge, boundsMax.x - distanceFromEdge);
 	newPos.z = std::clamp(newPos.z, boundsMin.y + distanceFromEdge, boundsMax.y - distanceFromEdge);
+	newPos.y = -2.0f;
 	SetTranslation(newPos);
-	std::printf("Teleport");
 }
 
 bool SlenderMan::CheckLineOfSight()
@@ -190,6 +190,11 @@ void SlenderMan::GetDistance()
 	XMFLOAT3 distTemp;
 	XMStoreFloat3(&distTemp, distanceFromPlayer);
 	distance = distTemp.x;
+}
+
+void SlenderMan::TurnToFacePlayer()
+{
+	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMLoadFloat4(&rotation));
 }
 
 void SlenderMan::IncreaseLevel()

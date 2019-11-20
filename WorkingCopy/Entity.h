@@ -36,7 +36,7 @@ public:
 	Material* GetMaterial();
 	Collider* GetCollider();
 	void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2);
-private:
+protected:
 	DirectX::XMFLOAT4X4 worldMatrix;
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 scale;
