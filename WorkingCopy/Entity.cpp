@@ -118,6 +118,7 @@ void Entity::MoveForward(float amount)
 void Entity::SetDirtyMatrix()
 {
 	isDirty = true;
+	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
 void Entity::ComputeWorldMatrix()

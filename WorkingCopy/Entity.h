@@ -22,6 +22,7 @@ public:
 	void SetTranslation(DirectX::XMFLOAT3 tran);
     void SetTranslation(float x, float y, float z) {
         SetTranslation(DirectX::XMFLOAT3(x, y, z));
+		SetDirtyMatrix();
 
     }
 	void SetScale(DirectX::XMFLOAT3 sc);

@@ -265,9 +265,7 @@ void Game::Destroy(shared_ptr<Entity> objectToDestroy)
 	int count = 0;
 	for (auto itr : entities)
 	{
-		if (objectToDestroy->GetPosition().x == itr->GetPosition().x &&
-			objectToDestroy->GetPosition().y == itr->GetPosition().y &&
-			objectToDestroy->GetPosition().z == itr->GetPosition().z)
+		if (itr == objectToDestroy)
 		{
 			auto toDelete = entities[count];
 			entities.erase(entities.begin() + count);
@@ -303,13 +301,15 @@ void Game::SpawnLetters(float x, float y, float z, XMVECTOR rotation)
 	// create a mesh for letters and push to vector of meshes
 	auto letter = gameFactory->CreateLetter(note, 1.0f);
 	letter->SetTag("letter");
-	collisionManager->addCollider(letter);
 	XMFLOAT3 SCALE = XMFLOAT3(0.5f, 0.35f, 0.02f);
 	XMFLOAT4 rot;
 	XMStoreFloat4(&rot, rotation);
 	letter->SetScale(SCALE);
 	letter->SetTranslation(x, y, z);
 	letter->SetRotation(rot);
+	collisionManager->addCollider(letter);
+
+
 	entities.push_back(letter);
 
 }
