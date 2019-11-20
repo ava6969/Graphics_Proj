@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Quadtree.h"
 #include <DirectXMath.h>
+#include <unordered_map>
 
 
 class CollisionManager
@@ -21,10 +22,12 @@ public:
             if (quad == NULL) {
                 quad = new Quadtree();
                 quad->CreateQuadtree(std::vector<Collider*>{ent->GetCollider()});
+
             }
             else {
                 quad->addToTree(ent->GetCollider());
             }
+			colliderDict.insert({ ent->GetCollider(), ent });
 			collidableObjects.push_back(ent);
 		}
 	}
@@ -42,7 +45,7 @@ public:
 	// collision resolution
 	void ResolvePlayerCollision(Collider* other);
 private:
-
+	std::unordered_map<Collider*, shared_ptr <Entity>> colliderDict;
     Quadtree* quad = NULL;
 	vector<shared_ptr<Entity>> collidableObjects;
 	shared_ptr<Camera> player;

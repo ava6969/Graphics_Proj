@@ -10,7 +10,7 @@ public:
 	Collider(float r);
 	Collider(DirectX::XMFLOAT2 s);
 	~Collider();
-
+	bool enabled = true;
 	// getters
 	float GetRadius();
 	DirectX::XMFLOAT2 GetCenter();

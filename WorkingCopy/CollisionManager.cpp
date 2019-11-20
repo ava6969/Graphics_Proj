@@ -11,6 +11,7 @@ CollisionManager::CollisionManager(shared_ptr<Camera> cam)
 {
   
 	player = cam;
+
 }
 
 CollisionManager::~CollisionManager()
@@ -94,12 +95,26 @@ shared_ptr<Entity> CollisionManager::HandlePlayerCollisions(const char* tag )
 
 	for (auto itr : treeColliders)
 	{
+		if (!itr->enabled) {
+			continue;
+		}
 		// circle collisions
 		if (itr->GetType() == 0)
 		{
+
 			if (CircleToCircleCollision(player->GetCollider(), itr))
 			{
-                ResolvePlayerCollision(itr);
+
+				if (colliderDict[itr]->getTag() == tag) {
+					itr->enabled = false;
+					return colliderDict[itr];
+					
+				}
+				else {
+					ResolvePlayerCollision(itr);
+
+				}
+
                 /*
 				if (itr->getTag() == tag)
 				{

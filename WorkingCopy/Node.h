@@ -21,7 +21,7 @@ struct QuadNode {
     QuadNode(std::vector<Collider*> newObjects) {
         xPos = 0;
         yPos = 0;
-        length = 100;
+        length = 200;
         objects = newObjects;
         depth = 0;
         if (objects.size() >= 3) {
