@@ -86,7 +86,10 @@ void SlenderMan::Teleport()
 	XMVECTOR behind = XMLoadFloat3(&behindTemp);
 
 	// Finds angle behind player
+	// Issue where numbers are consistent each run
 	float angle = rand() % 180 - 90;
+
+	angle = XMConvertToRadians(angle);
 
 	// Get the angle quaternion
 	XMFLOAT4 angleRotTemp;
@@ -100,21 +103,13 @@ void SlenderMan::Teleport()
 	// Get point on unit circle
 	XMVECTOR target = XMVector3Rotate(behind, angleRot);
 
-	XMFLOAT3 targetTemp;
-
 	float val = rand() % 10 + (int)levels.minRanges[agroLevel];
 	target = XMVector3Normalize(target);
 	target *= val;
-	XMStoreFloat3(&targetTemp, target);
 
-	XMVECTOR newPosTemp =  XMLoadFloat3(&player->GetPosition()) - target;
+	XMVECTOR newPosTemp =  XMLoadFloat3(&player->GetPosition()) + target;
 
 	float distanceFromEdge = 10;
-	XMFLOAT3 maxPosTemp = XMFLOAT3(boundsMax.x, 0.0f, boundsMax.y);
-	XMFLOAT3 minPosTemp = XMFLOAT3(boundsMin.x, 0.0f, boundsMin.y);
-
-	XMVECTOR maxPos = XMLoadFloat3(&maxPosTemp);
-	XMVECTOR minPos = XMLoadFloat3(&minPosTemp);
 
 	// Need to clamp magnitude
 	XMFLOAT3 newPos;
