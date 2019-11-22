@@ -2,7 +2,7 @@
 
 static AgroLevels levels;
 
-SlenderMan::SlenderMan(Mesh* m, Material* mat, float rad, Camera* player)
+SlenderMan::SlenderMan(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad, shared_ptr<Camera> player)
 	:Entity(
 		m,
 		mat,
@@ -36,8 +36,8 @@ SlenderMan::SlenderMan(Mesh* m, Material* mat, float rad, Camera* player)
 
 	// Should be done with a parameter, but we can change this later
 	// Just set it to the worlds bounds
-	boundsMax = XMFLOAT2(50.0f, 50.0f);
-	boundsMin = XMFLOAT2(-50.0f, -50.0f);
+	boundsMax = XMFLOAT2(160.0f, 160.0f);
+	boundsMin = XMFLOAT2(-160.0f, -160.0f);
 
 	isVisible = false;
 
@@ -139,7 +139,7 @@ void SlenderMan::CheckForStatic()
 		//return
 	}
 
-	XMVECTOR temp = XMVector3Dot(XMVector3Normalize(XMLoadFloat3(&player->GetDirection())), XMVector3Normalize(XMLoadFloat3(GetPosition()) - XMLoadFloat3(&player->GetPosition())));
+	XMVECTOR temp = XMVector3Dot(XMVector3Normalize(XMLoadFloat3(&player->GetDirection())), XMVector3Normalize(XMLoadFloat3(&position) - XMLoadFloat3(&player->GetPosition())));
 	XMFLOAT3 temp2;
 	XMStoreFloat3(&temp2, temp);
 	float dotVal = temp2.x;
@@ -183,7 +183,7 @@ void SlenderMan::CheckStandingStill(float deltaTime)
 
 void SlenderMan::GetDistance()
 {
-	XMVECTOR posTemp = XMLoadFloat3(GetPosition());
+	XMVECTOR posTemp = XMLoadFloat3(&position);
 	XMVECTOR playerPositionTemp = XMLoadFloat3(&player->GetPosition());
 	XMVECTOR distanceFromPlayer = posTemp - playerPositionTemp;
 	distanceFromPlayer = XMVector3Length(distanceFromPlayer);

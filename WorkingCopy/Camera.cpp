@@ -81,7 +81,7 @@ bool Camera::GetDebug()
 void Camera::Update(float deltaTime)
 {
 	// get user input
-	CheckForInput(2.5f, deltaTime);
+	CheckForInput(4.0f, deltaTime);
 
 	// calculate the view quaternion
 	XMVECTOR view = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);
@@ -111,6 +111,7 @@ void Camera::CheckForInput(float sensitivity, float dt)
 	if (GetAsyncKeyState(VK_SHIFT) & 0x8000)
 	{
 		sensitivity *= 2.5f;
+		if (debug) sensitivity = 20.0f * dt;
 	}
 	// forward
 	if (GetAsyncKeyState('W') & 0x8000)
@@ -171,6 +172,22 @@ void Camera::Rotate(float x, float y)
 void Camera::Move(DirectX::XMFLOAT3 amount)
 {
 	XMStoreFloat3(&position, XMVectorAdd(XMLoadFloat3(&position), XMLoadFloat3(&amount)));
+}
+
+void Camera::SendViewMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name)
+{
+	vs->SetMatrix4x4("view", viewMatrix);
+}
+
+void Camera::SendProjectionMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name)
+{
+	vs->SetMatrix4x4("projection", projectionMatrix);
+}
+
+void Camera::SendPositionToGPU(shared_ptr<SimplePixelShader> ps, const char* name)
+{
+	ps->SetFloat3(name, position);
+
 }
 
 DirectX::XMVECTOR Camera::MoveForwardBackwards(float amount)

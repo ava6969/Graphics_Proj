@@ -1,4 +1,32 @@
 
+#include "Lighting.hlsli"
+
+// How many lights could we handle?
+#define MAX_LIGHTS 128
+
+// Data that can change per material
+cbuffer perMaterial : register(b0)
+{
+	// Surface color
+	float4 Color;
+};
+
+// Data that only changes once per frame
+cbuffer perFrame : register(b1)
+{
+	// An array of light data
+	Light Lights[MAX_LIGHTS];
+
+	// The amount of lights THIS FRAME
+	int LightCount;
+
+	// Needed for specular (reflection) calculation
+	float3 CameraPosition;
+
+	int UsePBR;
+};
+
+
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
 // - The name of the struct itself is unimportant
@@ -18,140 +46,63 @@ struct VertexToPixel
 	float3 tangent		: TANGENT;
 };
 
-struct DirectionalLight
-{
-	float4 AmbientColor;
-	float4 DiffuseColor;
-	float3 Direction;
-	float Intensity;
-};
 
-struct PointLight
-{
-	float4 AmbientColor;
-	float4 DiffuseColor;
-	float3 Position;
-	float Radius;
-	float Intensity;
-};
-
-struct SpotLight
-{
-	float4 AmbientColor;
-	float4 DiffuseColor;
-	float3 Position;
-	float Angle;
-	float3 Direction;
-	float MaxLength;
-	float Intensity;
-};
-
-cbuffer lightData : register(b1)
-{
-	SpotLight light;
-	PointLight light2;
-	float3 cameraPos;
-	float shininess;
-};
-
+// texture related variables
 Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			: register(t1);
+Texture2D roughnessMap		: register(t2);
+Texture2D metalnessMap		: register(t3);
 SamplerState basicSampler	: register(s0);
 
-float4 calculateDLight(DirectionalLight l, float3 norm, float shine, float3 toCam, float4 tex)
-{
-	// get the direction to the light
-	float3 lightNormal = normalize(-l.Direction);
-	// calculate the brightness based on normals
-	float brightness = saturate(dot(norm, lightNormal));
 
-	// calculate specular
-	float3 H = normalize(-l.Direction + toCam);
-	float NdotH = dot(norm, H);
-	float specDir = saturate(pow(NdotH, shine));
-	// return the combined color
-	return l.AmbientColor * tex + l.DiffuseColor * tex * brightness + specDir * l.Intensity;
-}
 
-float4 calculatePLight(PointLight l, float3 norm, float3 pos, float shine, float3 toCam, float4 tex)
-{
-	// calculate the brightness
-	float3 toLight = normalize(l.Position - pos);
-	float NdotL = saturate(dot(norm, toLight));
-
-	// calculate specular
-	float3 H = normalize(toLight + toCam);
-	float NdotH = dot(norm, H);
-	float spec = saturate(pow(NdotH, shininess));
-
-	// calculate attenuation
-	float dist = distance(l.Position, pos);
-	float range = l.Radius;
-	float att = saturate(1.0f - (dist * dist / (range * range)));
-
-	// return the final color
-	return ((l.AmbientColor * tex + l.DiffuseColor * tex) * NdotL + spec) * att * l.Intensity;
-}
-
-float4 calculateSLight(SpotLight l, float3 norm, float3 pos, float3 shine, float3 toCam, float4 tex)
-{
-	// first do point light calculation
-	float3 toLight = normalize(l.Position - pos);
-	float NdotL = saturate(dot(norm, toLight));
-
-	// calculate the spot light falloff
-	float angleFromCenter = max(dot(-toLight, l.Direction), 0.0f);
-	float spotAmount = pow(angleFromCenter, l.Angle);
-
-	// calculate specular
-	float3 H = normalize(toLight + toCam);
-	float NdotH = dot(norm, H);
-	float spec = saturate(pow(NdotH, shininess));
-
-	// calculate attenuation
-	float dist = distance(l.Position, pos);
-	float range = l.MaxLength;
-	float att = saturate(1.0f - (dist * dist / (range * range)));
-
-	// return the final color
-	return ((l.AmbientColor * tex + l.DiffuseColor * tex) * NdotL + spec) * att * spotAmount * l.Intensity;
-}
-
-// --------------------------------------------------------
-// The entry point (main method) for our pixel shader
-// 
-// - Input is the data coming down the pipeline (defined by the struct)
-// - Output is a single color (float4)
-// - Has a special semantic (SV_TARGET), which means 
-//    "put the output of this into the current render target"
-// - Named "main" because that's the default the shader compiler looks for
-// --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-	// sample the texture
-	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
-	float4 mapColor = normalMap.Sample(basicSampler, input.uv);
-
-	// normalize normals
+	// Fix for poor normals: re-normalizing interpolated normals
 	input.normal = normalize(input.normal);
 	input.tangent = normalize(input.tangent);
 
-	// calculate normal mapping
-	float3 normalFromMap = mapColor.rgb * 2 - 1;
+	// Sample texture
+	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
+	// gamma correct
+	//surfaceColor = pow(surfaceColor, 2.2f);
+	// Use normal mapping
+	float3 mapColor = NormalMapping(normalMap, basicSampler, input.uv, input.normal, input.tangent);
+	// Sample the roughness map
+	float roughness = roughnessMap.Sample(basicSampler, input.uv).r;
+	// Sample the metal map
+	float metalness = metalnessMap.Sample(basicSampler, input.uv).r;
 
-	float3 T = normalize(input.tangent - input.normal * dot(input.tangent, input.normal));
-	float3 B = cross(T, input.normal);
+	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
+	float3 specColor = surfaceColor.rgb;
 
-	float3x3 TBN = float3x3(T, B, input.normal);
-	
-	// rotate the normal
-	input.normal = normalize(mul(normalFromMap, TBN));
+	// Total color for this pixel
+	float3 totalColor = float3(0, 0, 0);
+	for (int i = 0; i < LightCount; i++)
+	{
+		// Which kind of light?
+		switch (Lights[i].Type)
+		{
+		case LIGHT_TYPE_DIRECTIONAL:
+			totalColor += DirLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+			break;
 
-	// set up values to use for lighting
-	float3 toCamera = normalize(cameraPos - input.worldPos);
+		case LIGHT_TYPE_POINT:
+			totalColor += PointLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+			break;
 
-	float4 light1Color = calculateSLight(light, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	//float4 light2Color = calculatePLight(light2, input.normal, input.worldPos, shininess, toCamera, surfaceColor);
-	return light1Color; //+ light2Color;
+		case LIGHT_TYPE_SPOT:
+			if (UsePBR) {
+				totalColor += SpotLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+			}
+			else {
+				totalColor += SpotLight(Lights[i], input.normal, input.worldPos, CameraPosition, 1.0f, roughness, surfaceColor.rgb);
+			}
+			break;
+		}
+	}
+	// final gamma correct
+	totalColor = pow(totalColor, 1.0f / 2.2f);
+	return float4(totalColor, 1);
 }
 

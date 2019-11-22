@@ -16,7 +16,7 @@ class SlenderMan :
 	public Entity
 {
 public:
-	SlenderMan(Mesh* m, Material* mat, float rad, Camera* player);
+	SlenderMan(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad, shared_ptr<Camera> player);
 	~SlenderMan();
 	bool stopTeleport;
 
@@ -26,7 +26,7 @@ public:
 
 
 private:
-	Camera* player;
+	shared_ptr<Camera> player;
 	int agroLevel;
 	float timer;
 	float* staticAlpha;

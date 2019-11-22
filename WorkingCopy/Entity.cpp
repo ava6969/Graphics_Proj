@@ -3,22 +3,20 @@ using namespace DirectX;
 
 Entity::Entity()
 {
+
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
 
 	// set initial scale and position
 	position = XMFLOAT3(0, 0, 0);
 	scale = XMFLOAT3(1, 1, 1);
-
 	// set the initial rotation quaternion
 	XMStoreFloat4(&rotation, XMQuaternionIdentity());
-
-	mesh = new Mesh();
-
+	mesh = make_shared<Mesh>();
 	isDirty = true;
 }
 
-Entity::Entity(Mesh* m, Material* mat, float rad)
+Entity::Entity(std::shared_ptr<Mesh> m, std::shared_ptr < Material> mat, float rad)
 {
 	// set the initial world matrix
 	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
@@ -38,6 +36,30 @@ Entity::Entity(Mesh* m, Material* mat, float rad)
 	material = mat;
 
 	collider = new Collider(rad);
+
+	doRender = true;
+}
+
+Entity::Entity(shared_ptr<Mesh> m, shared_ptr<Material> mat, DirectX::XMFLOAT2 s)
+{
+	// set the initial world matrix
+	XMStoreFloat4x4(&worldMatrix, XMMatrixIdentity());
+
+	// set initial scale and position
+	position = XMFLOAT3(0, 0, 0);
+	scale = XMFLOAT3(1, 1, 1);
+
+	// set the initial rotation quaternion
+	XMStoreFloat4(&rotation, XMQuaternionIdentity());
+
+	// set the mesh pointer
+	mesh = m;
+
+	isDirty = true;
+
+	material = mat;
+
+	collider = new Collider(s);
 }
 
 Entity::~Entity()
@@ -53,6 +75,7 @@ DirectX::XMFLOAT4X4 Entity::GetWorldMatrix()
 void Entity::SetTranslation(DirectX::XMFLOAT3 tran)
 {
 	position = tran;
+
 	SetDirtyMatrix();
 }
 
@@ -95,6 +118,7 @@ void Entity::MoveForward(float amount)
 void Entity::SetDirtyMatrix()
 {
 	isDirty = true;
+	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
 void Entity::ComputeWorldMatrix()
@@ -115,9 +139,32 @@ void Entity::ComputeWorldMatrix()
 	collider->SetCenter(XMFLOAT2(position.x, position.z));
 }
 
-DirectX::XMFLOAT3* Entity::GetPosition()
+void Entity::CheckForDraw(std::shared_ptr<Camera> cam, float renderDistance)
 {
-	return &position;
+	XMVECTOR camPos = XMLoadFloat3(&cam->GetPosition());
+	XMVECTOR camForward = XMLoadFloat3(&cam->GetDirection());
+	XMVECTOR entPos = XMLoadFloat3(&position);
+	// are we in front or behind of the player?
+	XMVECTOR dotResult = XMVector3Dot(camForward, entPos - camPos);
+	XMFLOAT3 fResult;
+	XMStoreFloat3(&fResult, dotResult);
+	// don't draw if behind
+	if (fResult.x < 0)
+	{
+		doRender = false;
+		return;
+	}
+	// in front, but is it too far away?
+	XMVECTOR lengthResult = XMVector3LengthSq(entPos - camPos);
+	XMStoreFloat3(&fResult, lengthResult);
+	// if greater than set value, don't draw
+	if (fResult.x > renderDistance)
+	{
+		doRender = false;
+		return;
+	}
+
+	doRender = true;
 }
 
 ID3D11Buffer* Entity::GetVertexBuffer()
@@ -135,43 +182,22 @@ int Entity::GetIndexCount()
 	return mesh->GetIndexCount();
 }
 
-Material* Entity::GetMaterial()
+shared_ptr<Material> Entity::GetMaterial()
 {
 	return material;
 }
 
 Collider* Entity::GetCollider()
 {
+    collider->SetCenter(XMFLOAT2(position.x, position.z));
+    
 	return collider;
 }
 
-void Entity::PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight* light, PointLight* light2)
+void Entity::SendWorldMatrixToGPU(shared_ptr<SimpleVertexShader> vs, const char* name)
 {
-	// Send data to shader variables
-		//  - Do this ONCE PER OBJECT you're drawing
-		//  - This is actually a complex process of copying data to a local buffer
-		//    and then copying that entire buffer to the GPU.  
-		//  - The "SimpleShader" class handles all of that for you.
-	material->GetVertexShader()->SetMatrix4x4("world", worldMatrix);
-	material->GetVertexShader()->SetMatrix4x4("view", view);
-	material->GetVertexShader()->SetMatrix4x4("projection", proj);
-	material->GetPixelShader()->SetData("light", light, sizeof(SpotLight));
-	material->GetPixelShader()->SetData("light2", light2, sizeof(PointLight));
-	material->GetPixelShader()->SetFloat("shininess", material->GetShininess());
-	material->GetPixelShader()->SetShaderResourceView("diffuseTexture", material->GetTexture());
-	material->GetPixelShader()->SetShaderResourceView("normalMap", material->GetNormalMap());
-	material->GetPixelShader()->SetSamplerState("basicSampler", material->GetSampler());
-
-	// Once you've set all of the data you care to change for
-	// the next draw call, you need to actually send it to the GPU
-	//  - If you skip this, the "SetMatrix" calls above won't make it to the GPU!
-	material->GetVertexShader()->CopyAllBufferData();
-	material->GetPixelShader()->CopyAllBufferData();
-
-	// Set the vertex and pixel shaders to use for the next Draw() command
-	//  - These don't technically need to be set every frame...YET
-	//  - Once you start applying different shaders to different objects,
-	//    you'll need to swap the current shaders before each draw
-	material->GetVertexShader()->SetShader();
-	material->GetPixelShader()->SetShader();
+	vs->SetMatrix4x4(name, worldMatrix);
 }
+
+//void PrepareMaterial(DirectX::XMFLOAT4X4 view, DirectX::XMFLOAT4X4 proj, SpotLight const& light, PointLight const& light2);
+
