@@ -154,7 +154,7 @@ void Game::LoadShaders()
 	skyPS = make_shared< SimplePixelShader >(device, context);
 	skyPS->LoadShaderFile(L"PSSky.cso");
 
-	sky = gameFactory->CreateSkyBox(L"Textures/cubemap.dds", skyVS, skyPS);
+	sky = gameFactory->CreateSkyBox(L"Textures/NightSky.dds", skyVS, skyPS);
 }
 
 
@@ -388,22 +388,17 @@ void Game::Update(float deltaTime, float totalTime)
     camera->Update(deltaTime);
 
 	// Update lights
-	for (int i = 0; i < lightCount; i++)
+	lights[0].Position = camera->GetPosition();
+	lights[0].Direction = camera->GetDirection();
+	if (camera->GetDebug())
 	{
-		if (lights[i].Type == LIGHT_TYPE_SPOT)
-		{
-			lights[i].Position = camera->GetPosition();
-			lights[i].Direction = camera->GetDirection();
-		}
-		else if (lights[i].Type == LIGHT_TYPE_POINT)
-		{
-			
-		}
-		else if (lights[i].Type == LIGHT_TYPE_DIRECTIONAL)
-		{
-
-		}
-
+		lights[0].Range = 200.0f;
+		lights[0].SpotFalloff = 5.0f;
+	}
+	else
+	{
+		lights[0].Range = 30.0f;
+		lights[0].SpotFalloff = 50.0f;
 	}
 
     frameCounter = frameCounter + deltaTime;
@@ -422,7 +417,7 @@ void Game::Update(float deltaTime, float totalTime)
     //entities[0]->RotateAroundAxis(XMFLOAT3(0.0, 1.0, 0.0), deltaTime * 0.5f);
     for (int i = 0; i < entities.size(); i++) {
         entities[i]->ComputeWorldMatrix();
-		entities[i]->CheckForDraw(camera, 8000.0f);
+		entities[i]->CheckForDraw(camera, 4000.0f);
     }
 
 	slenderman->Update(deltaTime);

@@ -18,5 +18,5 @@ SamplerState samplerOptions : register(s0);
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Sample the cube map in the specified direction
-	return skyTexture.Sample(samplerOptions, input.sampleDirection);
+	return pow(skyTexture.Sample(samplerOptions, input.sampleDirection), 2.2f);
 }
