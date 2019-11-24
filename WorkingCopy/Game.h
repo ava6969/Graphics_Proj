@@ -36,11 +36,13 @@ private:
 	// Initialization helper methods - feel free to customize, combine, etc.
 	void LoadShaders(); 
 	void CreateBasicGeometry();
+	void SetupShadows();
 	void DrawAText();
 	void SpawnLetters(float x,float y ,float z, XMVECTOR rotation);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(shared_ptr<Entity> objectToDestroy);
 	void ChangeStatic();		// Increases or decreases static based on slenderman proximity to player
+	void RenderShadows();
 
 	std::vector<Light> lights;
 	void GenerateLights();
@@ -54,6 +56,7 @@ private:
 	shared_ptr< SimplePixelShader> pixelShader;
     shared_ptr<SimpleVertexShader> skyVS;
 	shared_ptr<SimplePixelShader> skyPS;
+	shared_ptr<SimpleVertexShader> shadowVS;
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -100,5 +103,14 @@ private:
 	ComPtr<ID3D11ShaderResourceView> paintMetallic;
 	ComPtr<ID3D11ShaderResourceView> slendermanAlbedo;
 	ComPtr<ID3D11ShaderResourceView> slendermanNormal;
+
+	// shadows
+	int shadowMapSize;
+	ComPtr<ID3D11DepthStencilView> shadowDSV;
+	ComPtr<ID3D11ShaderResourceView> shadowSRV;
+	ComPtr<ID3D11SamplerState> shadowSampler;
+	ComPtr<ID3D11RasterizerState> shadowRasterizer;
+	DirectX::XMFLOAT4X4 shadowViewMatrix;
+	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
 };
 

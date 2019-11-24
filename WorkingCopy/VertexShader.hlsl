@@ -10,6 +10,9 @@ cbuffer externalData : register(b0)
 	matrix world;
 	matrix view;
 	matrix projection;
+
+	matrix shadowView;
+	matrix shadowProjection;
 };
 
 // Struct representing a single vertex worth of data
@@ -47,6 +50,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	float4 posForShadow : SHADOWPOS;
 };
 
 // --------------------------------------------------------
@@ -76,6 +80,10 @@ VertexToPixel main( VertexShaderInput input )
 	// The result is essentially the position (XY) of the vertex on our 2D 
 	// screen and the distance (Z) from the camera (the "depth" of the pixel)
 	output.position = mul(float4(input.position, 1.0f), worldViewProj);
+
+	// calculate shadow positions
+	matrix shadowWVP = mul(mul(world, shadowView), shadowProjection);
+	output.posForShadow = mul(float4(input.position, 1.0f), shadowWVP);
 
 	// calculate normals and tangents
 	float3x3 worldNoTran = (float3x3)world;

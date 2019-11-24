@@ -44,6 +44,7 @@ struct VertexToPixel
 	float2 uv			: TEXCOORD;
 	float3 worldPos		: POSITION;
 	float3 tangent		: TANGENT;
+	float4 posForShadow : SHADOWPOS;
 };
 
 
@@ -52,7 +53,9 @@ Texture2D diffuseTexture	: register(t0);
 Texture2D normalMap			: register(t1);
 Texture2D roughnessMap		: register(t2);
 Texture2D metalnessMap		: register(t3);
+Texture2D shadowMap			: register(t4);
 SamplerState basicSampler	: register(s0);
+SamplerComparisonState shadowSampler  : register(s1);
 
 
 
@@ -76,6 +79,17 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Specular color - Assuming albedo texture is actually holding specular color if metal == 1
 	float3 specColor = surfaceColor.rgb;
 
+	// shadows
+	float2 shadowUV = input.posForShadow.xy / input.posForShadow.w * 0.5f + 0.5f;
+	shadowUV.y = 1.0f - shadowUV.y;
+
+	// Calculate this pixel's depth from the light
+	float depthFromLight = input.posForShadow.z / input.posForShadow.w;
+
+	// Sample the shadow map using a comparison sampler, which
+	// will compare the depth from the light and the value in the shadow map
+	float shadowAmount = shadowMap.SampleCmpLevelZero(shadowSampler, shadowUV, depthFromLight);
+
 	// Total color for this pixel
 	float3 totalColor = float3(0, 0, 0);
 	for (int i = 0; i < LightCount; i++)
@@ -93,7 +107,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 
 		case LIGHT_TYPE_SPOT:
 			if (UsePBR) {
-				totalColor += SpotLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor);
+				totalColor += SpotLightPBR(Lights[i], input.normal, input.worldPos, CameraPosition, roughness, metalness, surfaceColor.rgb, specColor) * shadowAmount;
 			}
 			else {
 				totalColor += SpotLight(Lights[i], input.normal, input.worldPos, CameraPosition, 1.0f, roughness, surfaceColor.rgb);

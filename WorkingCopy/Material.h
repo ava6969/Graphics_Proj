@@ -55,7 +55,7 @@ public:
 	inline ComPtr< ID3D11ShaderResourceView> GetRoughness() const { return roughness; }
 	inline ComPtr<ID3D11ShaderResourceView> GetMetalness() const { return metalness; }
 	inline DirectX::XMFLOAT3 GetSpecularColor() const { return specColor; }
-	void PrepareMaterial();
+	void PrepareMaterial(DirectX::XMFLOAT4X4 shadowView, DirectX::XMFLOAT4X4 shadowProj, ComPtr<ID3D11ShaderResourceView> shadowMap, ComPtr<ID3D11SamplerState> shadowSample);
 
 
 protected:

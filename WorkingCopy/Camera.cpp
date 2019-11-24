@@ -86,7 +86,8 @@ void Camera::Update(float deltaTime)
 	// calculate the view quaternion
 	XMVECTOR view = XMQuaternionRotationRollPitchYaw(rotX, rotY, 0);
 	// apply to the forward
-	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0,0,1,0), view);
+	XMVECTOR dir = XMVector3Normalize(XMVector3Rotate(XMVectorSet(0,0,1,0), view));
+	XMVECTOR rightV = XMVector3Normalize(XMVector3Rotate(XMVectorSet(1, 0, 0, 0), view));
 	// keep the Y value on the same plane when playing
 	if (!debug)
 	{
@@ -99,6 +100,7 @@ void Camera::Update(float deltaTime)
 		XMVectorSet(0, 1, 0, 0)); // up
 	// store the values
 	XMStoreFloat3(&direction, dir);
+	XMStoreFloat3(&right, rightV);
 	XMStoreFloat4x4(&viewMatrix, XMMatrixTranspose(result));
 
 	collider->SetCenter(XMFLOAT2(position.x, position.z));

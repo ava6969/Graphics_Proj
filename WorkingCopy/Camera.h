@@ -22,6 +22,7 @@ public:
 	DirectX::XMFLOAT3 GetDirection();
 	Collider * GetCollider();
 	bool GetDebug();
+	inline DirectX::XMFLOAT3 GetRight() { return right; }
 
 	void Update(float deltaTime);
 	void CheckForInput(float sensitivity, float dt);
@@ -46,6 +47,7 @@ private:
 	// vectors
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 direction;
+	DirectX::XMFLOAT3 right;
 	// rotation floats
 	float rotX;
 	float rotY;

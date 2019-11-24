@@ -80,7 +80,7 @@ void Material::AddTextureProperties(const wchar_t* file, MATERIAL_FEATURES optio
 		 
 }
 
-void Material::PrepareMaterial()
+void Material::PrepareMaterial(DirectX::XMFLOAT4X4 shadowView, DirectX::XMFLOAT4X4 shadowProj, ComPtr<ID3D11ShaderResourceView> shadowMap, ComPtr<ID3D11SamplerState> shadowSample)
 {
 	// Send data to shader variables
 		//  - Do this ONCE PER OBJECT you're drawing
@@ -88,6 +88,8 @@ void Material::PrepareMaterial()
 		//    and then copying that entire buffer to the GPU.  
 		//  - The "SimpleShader" class handles all of that for you.
 	// might remove
+	vertexShader->SetMatrix4x4("shadowView", shadowView);
+	vertexShader->SetMatrix4x4("shadowProjection", shadowProj);
 
 	if (shininess) pixelShader->SetFloat("shininess", shininess);
 	pixelShader->SetFloat3("specularColor", specColor);
@@ -96,6 +98,8 @@ void Material::PrepareMaterial()
 	pixelShader->SetShaderResourceView("diffuseTexture", texture.Get());
 	pixelShader->SetShaderResourceView("normalMap", normalMap.Get());
 	pixelShader->SetSamplerState("basicSampler", samplerOptions.Get());
+	pixelShader->SetShaderResourceView("shadowMap", shadowMap.Get());
+	pixelShader->SetSamplerState("shadowSampler", shadowSample.Get());
 	pixelShader->SetInt("UsePBR", usePBR);
 
 
