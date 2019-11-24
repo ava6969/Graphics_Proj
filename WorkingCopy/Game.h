@@ -43,6 +43,7 @@ private:
 	void Destroy(shared_ptr<Entity> objectToDestroy);
 	void ChangeStatic();		// Increases or decreases static based on slenderman proximity to player
 	void RenderShadows();
+	void FlashlightBob(float deltaTime);
 
 	std::vector<Light> lights;
 	void GenerateLights();

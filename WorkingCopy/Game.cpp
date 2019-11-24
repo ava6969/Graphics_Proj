@@ -461,8 +461,10 @@ void Game::Update(float deltaTime, float totalTime)
 
     camera->Update(deltaTime);
 
+	frameCounter = frameCounter + deltaTime;
+
 	// Update lights
-	XMStoreFloat3(&lights[0].Position, XMLoadFloat3(&camera->GetPosition()) + (XMLoadFloat3(&camera->GetRight()) * 0.5f));
+	FlashlightBob(frameCounter);
 	lights[0].Direction = camera->GetDirection();
 	if (camera->GetDebug())
 	{
@@ -481,7 +483,7 @@ void Game::Update(float deltaTime, float totalTime)
 		XMVectorSet(0, 1, 0, 0)); // up
 	XMStoreFloat4x4(&shadowViewMatrix, XMMatrixTranspose(viewShadow));
 
-    frameCounter = frameCounter + deltaTime;
+    
 
     // if letter is found
 	auto objToRemove = collisionManager->HandlePlayerCollisions("letter");
@@ -501,6 +503,13 @@ void Game::Update(float deltaTime, float totalTime)
     }
 
 	slenderman->Update(deltaTime);
+}
+
+void Game::FlashlightBob(float deltaTime)
+{
+	float x = sin(deltaTime * 1.5f) * 0.2f;
+	float y = sin(deltaTime * 3.0f) * 0.2f;
+	XMStoreFloat3(&lights[0].Position, XMLoadFloat3(&camera->GetPosition()) + (XMLoadFloat3(&camera->GetRight()) * 0.5f) + XMVectorSet(x, y, 0, 0));
 }
 
 void Game::RenderShadows()
@@ -557,6 +566,7 @@ void Game::RenderShadows()
 	context->RSSetViewports(1, &viewport);
 	context->RSSetState(0);
 }
+
 
 // --------------------------------------------------------
 // Clear the screen, redraw everything, present to the user
