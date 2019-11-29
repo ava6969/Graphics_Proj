@@ -11,7 +11,7 @@
 #include "CollisionManager.h"
 #include "SlenderMan.h"
 #include "GameFactory.h"
-
+#include "Emitter.h"
 class Game 
 	: public DXCore
 {
@@ -91,6 +91,7 @@ private:
 	shared_ptr<Material> lamp;
 	shared_ptr<Material> slendermanMaterial;
 	shared_ptr<CollisionManager> collisionManager;
+
 
 	// skybox mesh
 	shared_ptr<Mesh> skyMesh;

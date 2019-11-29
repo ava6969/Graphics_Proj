@@ -7,6 +7,8 @@
     <FxCompile Include="VertexShader.hlsl" />
     <FxCompile Include="VSSky.hlsl" />
     <FxCompile Include="ShadowVS.hlsl" />
+    <FxCompile Include="ParticlePS.hlsl" />
+    <FxCompile Include="ParticleVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
@@ -22,6 +24,7 @@
     <ClCompile Include="Quadtree.cpp" />
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="SlenderMan.cpp" />
+    <ClCompile Include="Emitter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -39,6 +42,7 @@
     <ClInclude Include="SimpleShader.h" />
     <ClInclude Include="SlenderMan.h" />
     <ClInclude Include="Vertex.h" />
+    <ClInclude Include="Emitter.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lighting.hlsli" />
