@@ -51,6 +51,7 @@ void Game::Init()
 	gameFactory = make_shared<GameFactory>(device, context);
 
 	LoadShaders();
+	CreateEmitters();
 	SetupShadows();
 	CreateBasicGeometry();
 	lightCount = 0;
@@ -435,6 +436,19 @@ void Game::DrawAText()
 
 }
 
+void Game::CreateEmitters()
+{
+
+	emitterVS = make_shared < SimpleVertexShader >(device, context);
+	emitterVS->LoadShaderFile(L"ParticleVS.cso");
+
+	emitterPS = make_shared < SimplePixelShader >(device, context);
+	emitterPS->LoadShaderFile(L"ParticlePS.cso");
+
+	emitter_1 = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.8, .3, .3, 1), XMFLOAT4(.9, .9, .3, 1), XMFLOAT3(0, -.1, 0),
+		XMFLOAT3(.3, 0, .3), XMFLOAT3(0, .5f, 0), XMFLOAT3(.1f, 0, .1f), XMFLOAT4(0, 0, 0, 0),XMFLOAT3(0, .3, 0), emitterVS, emitterPS, copperRough);
+}
+
 
 
 // --------------------------------------------------------
@@ -476,6 +490,8 @@ void Game::Update(float deltaTime, float totalTime)
 		lights[0].Range = 30.0f;
 		lights[0].SpotFalloff = 50.0f;
 	}
+
+	emitter_1->Update(deltaTime);
 	// update the shadow view matrix
 	XMMATRIX viewShadow = XMMatrixLookToLH(
 		XMLoadFloat3(&lights[0].Position),  // position
@@ -668,6 +684,9 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Reset states for next frame
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
+
+
+	emitter_1->Draw(context, camera);
 
 	DrawAText();
     // Present the back buffer to the user

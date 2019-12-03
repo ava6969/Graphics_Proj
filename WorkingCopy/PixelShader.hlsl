@@ -68,7 +68,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample texture
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	// gamma correct
-	surfaceColor = pow(surfaceColor, 2.2f);
+	surfaceColor = pow(surfaceColor, 1.0f);
 	// Use normal mapping
 	float3 mapColor = NormalMapping(normalMap, basicSampler, input.uv, input.normal, input.tangent);
 	// Sample the roughness map

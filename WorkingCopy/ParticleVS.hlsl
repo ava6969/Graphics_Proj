@@ -34,7 +34,7 @@ VertexToPixel main(VertexShaderInput input)
 
 	// Pass uv through
 	output.uv = input.uv;
-    output.color = float4(1,1,1,1);
+	output.color = input.color;
    
     return output;
 }

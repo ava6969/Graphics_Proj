@@ -38,6 +38,7 @@ private:
 	void CreateBasicGeometry();
 	void SetupShadows();
 	void DrawAText();
+	void CreateEmitters();
 	void SpawnLetters(float x,float y ,float z, XMVECTOR rotation);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(shared_ptr<Entity> objectToDestroy);
@@ -58,6 +59,10 @@ private:
     shared_ptr<SimpleVertexShader> skyVS;
 	shared_ptr<SimplePixelShader> skyPS;
 	shared_ptr<SimpleVertexShader> shadowVS;
+
+	shared_ptr<SimpleVertexShader> emitterVS;
+	shared_ptr<SimplePixelShader> emitterPS;
+
 
 	// Keeps track of the old mouse position.  Useful for 
 	// determining how far the mouse moved in a single frame.
@@ -107,6 +112,11 @@ private:
 	ComPtr<ID3D11ShaderResourceView> paintMetallic;
 	ComPtr<ID3D11ShaderResourceView> slendermanAlbedo;
 	ComPtr<ID3D11ShaderResourceView> slendermanNormal;
+
+
+	std::unique_ptr<Emitter> emitter_1;
+
+
 
 	// shadows
 	int shadowMapSize;

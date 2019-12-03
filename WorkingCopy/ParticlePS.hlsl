@@ -23,8 +23,7 @@ SamplerState trilinear	: register(s0);
 float4 main(VertexToPixel input) : SV_TARGET
 {
 	// Sample texture and combine with input color
-	float4 color = particle.Sample(trilinear, input.uv) * input.color;
-
-	// Return either particle color or white (for debugging)
-	return lerp(color, float4(1, 1, 1, 0.25f), debugWireframe);
+	float4 color = input.color;//particle.Sample(trilinear, input.uv) * input.color;
+	return color;
+	
 }
