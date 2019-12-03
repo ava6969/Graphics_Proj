@@ -169,3 +169,8 @@ Light GameFactory::CreateDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::
 	dir.Intensity = intensity;
 	return dir;
 }
+
+std::unique_ptr<Emitter> GameFactory::CreateEmitter(int maxParticles, float timeBetweenSpawn, float particleLifetime, DirectX::XMFLOAT4 startColor, DirectX::XMFLOAT4 endColor, DirectX::XMFLOAT3 startVelocity, DirectX::XMFLOAT3 velocityRandomRange, DirectX::XMFLOAT3 emitterPosition, DirectX::XMFLOAT3 positionRandomRange, DirectX::XMFLOAT4 rotationRandomRanges, DirectX::XMFLOAT3 emitterAcceleration, std::shared_ptr<SimpleVertexShader> vs, std::shared_ptr<SimplePixelShader> ps, ComPtr<ID3D11ShaderResourceView> texture)
+{
+	return make_unique<Emitter>(maxParticles, timeBetweenSpawn, particleLifetime, startColor, endColor, startVelocity, velocityRandomRange, emitterPosition, positionRandomRange, rotationRandomRanges, emitterAcceleration,device, vs, ps, texture);
+}

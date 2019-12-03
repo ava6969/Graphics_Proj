@@ -1,6 +1,7 @@
 #include "Emitter.h"
 using namespace DirectX;
-Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetime, DirectX::XMFLOAT4 startColor, DirectX::XMFLOAT4 endColor, DirectX::XMFLOAT3 startVelocity, DirectX::XMFLOAT3 velocityRandomRange, DirectX::XMFLOAT3 emitterPosition, DirectX::XMFLOAT3 positionRandomRange, DirectX::XMFLOAT4 rotationRandomRanges, DirectX::XMFLOAT3 emitterAcceleration, ID3D11Device* device, SimpleVertexShader* vs, SimplePixelShader* ps, ID3D11ShaderResourceView* texture)
+
+Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetime, DirectX::XMFLOAT4 startColor, DirectX::XMFLOAT4 endColor, DirectX::XMFLOAT3 startVelocity, DirectX::XMFLOAT3 velocityRandomRange, DirectX::XMFLOAT3 emitterPosition, DirectX::XMFLOAT3 positionRandomRange, DirectX::XMFLOAT4 rotationRandomRanges, DirectX::XMFLOAT3 emitterAcceleration, ID3D11Device* device, std::shared_ptr<SimpleVertexShader> vs, std::shared_ptr<SimplePixelShader> ps, ComPtr<ID3D11ShaderResourceView> texture)
 {
     this->vs = vs;
     this->ps = ps;
@@ -29,15 +30,16 @@ Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetim
     firstAliveIndex = 0;
     firstDeadIndex = 0;
 
-    particles = new Particle[maxParticles];
-    ZeroMemory(particles, sizeof(Particle) * maxParticles);
+    particles = std::make_unique<Particle[]>(maxParticles);
+	particles = {};
+    ZeroMemory(particles.get(), sizeof(Particle) * maxParticles);
 
     DefaultUVs[0] = XMFLOAT2(0, 0);
     DefaultUVs[1] = XMFLOAT2(1, 0);
     DefaultUVs[2] = XMFLOAT2(1, 1);
     DefaultUVs[3] = XMFLOAT2(0, 1);
 
-    partVerts = new ParticleVertex[4 * maxParticles];
+    partVerts = std::make_unique<ParticleVertex[]>(4 * maxParticles);
     for (int i = 0; i < maxParticles * 4; i += 4)
     {
         partVerts[i + 0].UV = DefaultUVs[0];
@@ -58,7 +60,7 @@ Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetim
     device->CreateBuffer(&vbDesc, 0, &vertexBuffer);
 
     // Index buffer data
-    unsigned int* indices = new unsigned int[maxParticles * 6];
+    auto indices = make_unique<int[]>(maxParticles * 6);
     int indexCount = 0;
     for (int i = 0; i < maxParticles * 4; i += 4)
     {
@@ -70,7 +72,7 @@ Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetim
         indices[indexCount++] = i + 3;
     }
     D3D11_SUBRESOURCE_DATA indexData = {};
-    indexData.pSysMem = indices;
+    indexData.pSysMem = indices.get();
 
     // Regular (static) index buffer
     D3D11_BUFFER_DESC ibDesc = {};
@@ -80,16 +82,16 @@ Emitter::Emitter(int maxParticles, float timeBetweenSpawn, float particleLifetim
     ibDesc.ByteWidth = sizeof(unsigned int) * maxParticles * 6;
     device->CreateBuffer(&ibDesc, &indexData, &indexBuffer);
 
-    delete[] indices;
+   // delete[] indices;
 
 }
 
 Emitter::~Emitter()
 {
-    delete[] particles;
-    delete[] partVerts;
-    vertexBuffer->Release();
-    indexBuffer->Release();
+    //delete[] particles;
+    //delete[] partVerts;
+    //vertexBuffer->Release();
+    //indexBuffer->Release();
 }
 
 void Emitter::Update(float deltaTime)
@@ -116,7 +118,7 @@ void Emitter::Update(float deltaTime)
     }
 }
 
-void Emitter::Draw(ID3D11DeviceContext* context, Camera* cam)
+void Emitter::Draw(ID3D11DeviceContext* context, std::shared_ptr<Camera> cam)
 {
     CopyParticlesToGPU(context, cam);
 
@@ -130,7 +132,7 @@ void Emitter::Draw(ID3D11DeviceContext* context, Camera* cam)
     vs->SetShader();
     vs->CopyAllBufferData();
 
-    ps->SetShaderResourceView("particle", texture);
+    ps->SetShaderResourceView("particle", texture.Get());
 
     ps->SetShader();
 }
@@ -217,7 +219,7 @@ void Emitter::SpawnParticle()
 
 }
 
-void Emitter::CopyParticlesToGPU(ID3D11DeviceContext* context, Camera* camera)
+void Emitter::CopyParticlesToGPU(ID3D11DeviceContext* context, std::shared_ptr<Camera> camera)
 {
     if (firstAliveIndex < firstDeadIndex) {
         for (int i = firstAliveIndex; i < firstDeadIndex; i++) {
@@ -236,12 +238,12 @@ void Emitter::CopyParticlesToGPU(ID3D11DeviceContext* context, Camera* camera)
     D3D11_MAPPED_SUBRESOURCE mapped = {};
     context->Map(vertexBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
 
-    memcpy(mapped.pData, partVerts, sizeof(ParticleVertex) * 4 * maxParticle);
+    memcpy(mapped.pData, partVerts.get(), sizeof(ParticleVertex) * 4 * maxParticle);
 
     context->Unmap(vertexBuffer, 0);
 }
 
-void Emitter::CopyOneParticle(int index, Camera* camera)
+void Emitter::CopyOneParticle(int index, std::shared_ptr<Camera> camera)
 {
     int i = index * 4;
 
@@ -256,7 +258,7 @@ void Emitter::CopyOneParticle(int index, Camera* camera)
     partVerts[i + 3].Color = particles[index].Color;
 }
 
-DirectX::XMFLOAT3 Emitter::CalcParticleVertexPosition(int particleIndex, int quadCornerIndex, Camera* camera)
+DirectX::XMFLOAT3 Emitter::CalcParticleVertexPosition(int particleIndex, int quadCornerIndex, std::shared_ptr<Camera> camera)
 {
     // Get the right and up vectors out of the view matrix
     // (Remember that it is probably already transposed)

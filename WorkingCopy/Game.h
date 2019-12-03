@@ -92,6 +92,8 @@ private:
 	shared_ptr<Material> slendermanMaterial;
 	shared_ptr<CollisionManager> collisionManager;
 
+	// Emitter
+	std::unique_ptr<Emitter> emitter;
 
 	// skybox mesh
 	shared_ptr<Mesh> skyMesh;

@@ -2,10 +2,11 @@
 
 #include <d3d11.h>
 #include <DirectXMath.h>
-
+#include <memory>
 #include "Camera.h"
 #include "SimpleShader.h"
-
+#include <wrl/client.h>
+using namespace Microsoft::WRL;
 
 struct Particle {
     DirectX::XMFLOAT4 Color;
@@ -42,14 +43,14 @@ public:
         DirectX::XMFLOAT4 rotationRandomRanges,
         DirectX::XMFLOAT3 emitterAcceleration,
         ID3D11Device* device,
-        SimpleVertexShader* vs,
-        SimplePixelShader* ps,
-        ID3D11ShaderResourceView* texture
+        std::shared_ptr<SimpleVertexShader> vs,
+        std::shared_ptr<SimplePixelShader> ps,
+        ComPtr<ID3D11ShaderResourceView> texture
         );
     ~Emitter();
 
     void Update(float deltaTime);
-    void Draw(ID3D11DeviceContext* context, Camera* cam);
+    void Draw(ID3D11DeviceContext* context, std::shared_ptr<Camera> cam);
 
 private:
     float spawnTime;
@@ -73,25 +74,25 @@ private:
     float startSize;
     float endSize;
 
-    Particle* particles;
+    std::unique_ptr<Particle[]> particles;
     int maxParticle;
     int firstDeadIndex;
     int firstAliveIndex;
 
-    ParticleVertex* partVerts;
+	std::unique_ptr<ParticleVertex[]> partVerts;
     ID3D11Buffer* vertexBuffer;
     ID3D11Buffer* indexBuffer;
 
-    ID3D11ShaderResourceView* texture;
-    SimpleVertexShader* vs;
-    SimplePixelShader* ps;
+    ComPtr<ID3D11ShaderResourceView> texture;
+    std::shared_ptr<SimpleVertexShader> vs;
+    std::shared_ptr<SimplePixelShader> ps;
 
     void UpdateSingleParticle(float dt, int index);
     void SpawnParticle();
 
-    void CopyParticlesToGPU(ID3D11DeviceContext* context, Camera* camera);
-    void CopyOneParticle(int index, Camera* camera);
-    DirectX::XMFLOAT3 CalcParticleVertexPosition(int particleIndex, int quadCornerIndex, Camera* camera);
+    void CopyParticlesToGPU(ID3D11DeviceContext* context, std::shared_ptr<Camera> camera);
+    void CopyOneParticle(int index, std::shared_ptr<Camera> camera);
+    DirectX::XMFLOAT3 CalcParticleVertexPosition(int particleIndex, int quadCornerIndex, std::shared_ptr<Camera> camera);
 
 
 };
