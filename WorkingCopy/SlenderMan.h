@@ -23,9 +23,12 @@ public:
 	void Update(float deltaTime);
 	void IncreaseLevel();
 	//static AgroLevels levels;
+	inline int getAgroLevel() const { return agroLevel; }
+	inline void setAgroLevel(int const& agroLevel) { this->agroLevel = agroLevel; }
 
 
 private:
+
 	shared_ptr<Camera> player;
 	int agroLevel;
 	float timer;

@@ -11,7 +11,7 @@ SlenderMan::SlenderMan(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad
 {
 	this->player = player;
 	// Don't think a reference to Game is needed
-	agroLevel = 3;
+	agroLevel = 0;
 	staticAlpha = 0;
 	distance = 0;
 	proximityCheck = false;
@@ -118,6 +118,13 @@ void SlenderMan::Teleport()
 	newPos.z = std::clamp(newPos.z, boundsMin.y + distanceFromEdge, boundsMax.y - distanceFromEdge);
 	newPos.y = -2.0f;
 	SetTranslation(newPos);
+
+	//printf("slenderMan teleported to (%f, %f, %f) \n", position.x, position.y, position.z);
+	printf("distance btw CAM and SM is %f \n", sqrt( pow(player->GetPosition().x - position.x, 2) +
+													pow(player->GetPosition().y - position.y, 2) +
+													pow(player->GetPosition().z - position.z, 2)));
+	
+
 }
 
 bool SlenderMan::CheckLineOfSight()
@@ -201,3 +208,5 @@ void SlenderMan::IncreaseLevel()
 {
 	agroLevel++;
 }
+
+

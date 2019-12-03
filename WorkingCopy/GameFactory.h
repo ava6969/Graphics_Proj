@@ -6,6 +6,7 @@
 #include "Lights.h"
 #include <wrl/client.h>
 #include "SlenderMan.h"
+#include "Emitter.h"
 
 
 using namespace Microsoft::WRL;
@@ -41,6 +42,8 @@ public:
 	Light CreateSpotlight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 direction , DirectX::XMFLOAT3 color, float range, float intensity, float spotFalloff );
 	Light CreatePointLight(DirectX::XMFLOAT3 position, DirectX::XMFLOAT3 color, float range, float intensity);
 	Light CreateDirectionalLight(DirectX::XMFLOAT3 direction, DirectX::XMFLOAT3 color, float intensity);
+
+	// Create Emmitter
 
 
 }; 

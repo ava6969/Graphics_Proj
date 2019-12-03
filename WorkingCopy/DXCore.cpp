@@ -303,22 +303,17 @@ HRESULT DXCore::InitDirect2D()
 #endif
 	// create the DirectWrite factory
 	if SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &writeFactory))
-		printf("SUCCESS: Created DWrite Factory\n");
-	
 	if SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory2), &options, &factory))
 		printf("SUCCESS: Created Direct2D Factory\n");
 
 	ComPtr<IDXGIDevice> dxgiDevice;
 	// get the dxgi device
 	if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice))) // change to regular pointer issue persist
-		printf("SUCCESS: Got DXGI Device\n");
 
 	// create the Direct2D device
 	if SUCCEEDED(factory->CreateDevice(dxgiDevice.Get(), &d2Device))
-		printf("SUCCESS: Created Direct2D device\n");
 
 	if (SUCCEEDED(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &d2Context)))
-		printf("SUCCESS:Created Direct2D device Context!\n");
 
 	return S_OK;
 
@@ -338,22 +333,25 @@ HRESULT DXCore::CreateBitmapRenderTarget()
 	// Direct2D needs the DXGI version of the back buffer
 	ComPtr<IDXGISurface> dxgiBuffer;
 	if (SUCCEEDED(swapChain->GetBuffer(0, __uuidof(IDXGISurface), &dxgiBuffer)))
-		printf("SUCCESS: Retrived BackBuffer from SwapChain\n");
+	{
+		// create the bitmap
+		ComPtr<ID2D1Bitmap1> targetBitmap;
+		HRESULT hr = d2Context->CreateBitmapFromDxgiSurface(dxgiBuffer.Get(), &bp, &targetBitmap);
+		if (SUCCEEDED(hr))
+		{
+			if (FAILED(hr))
+				printf("Critical error: Unable to create the Direct2D bitmap from the DXGI surface!\n");
+
+			// set the newly created bitmap as render target
+			d2Context->SetTarget(targetBitmap.Get());
+
+			// return success
+			return S_OK;
+		}
+	}
 	
-	// create the bitmap
-	ComPtr<ID2D1Bitmap1> targetBitmap;
-	HRESULT hr = d2Context->CreateBitmapFromDxgiSurface(dxgiBuffer.Get(), &bp, &targetBitmap);
-	if (SUCCEEDED(hr))
-		printf("SUCCESS: Created Direct2d bitmap from DXGI Surface!\n");
 
-	if (FAILED(hr))
-		printf("Critical error: Unable to create the Direct2D bitmap from the DXGI surface!\n");
 
-	// set the newly created bitmap as render target
-		d2Context->SetTarget(targetBitmap.Get());
-
-	// return success
-		return S_OK;
 }
 
 		

@@ -225,7 +225,7 @@ void Game::CreateBasicGeometry()
 	entities.push_back(e7);
 
 	slenderman = gameFactory->CreateSlenderman(slendermanMaterial, 1.0f, camera);
-	//slenderman->SetTranslation(0.0f, 0.0f, 0.0f);
+	slenderman->SetTranslation(16.0f, 0.0f, 0.0f);
 	collisionManager->addCollider(slenderman);
 	entities.push_back(slenderman);
 
@@ -490,7 +490,8 @@ void Game::Update(float deltaTime, float totalTime)
 	if (objToRemove != nullptr)
 	{
 		Destroy(objToRemove);
-	
+		slenderman->setAgroLevel(slenderman->getAgroLevel() + 1); // increment 
+		printf("Agrolevel is now %d", slenderman->getAgroLevel());
 	}
 
     //float val = sin(frameCounter);
