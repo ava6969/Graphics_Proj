@@ -95,6 +95,7 @@ private:
 	shared_ptr<Material> note;
 	shared_ptr<Material> lamp;
 	shared_ptr<Material> slendermanMaterial;
+	shared_ptr<Material> brick;
 	shared_ptr<CollisionManager> collisionManager;
 
 	// Emitter

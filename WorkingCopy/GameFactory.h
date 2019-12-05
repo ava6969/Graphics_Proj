@@ -30,6 +30,7 @@ public:
 	shared_ptr<Entity> CreateEntity(const char* file, shared_ptr<Material> material, float pos);
 	shared_ptr<Entity> CreateEntity(const char* file, shared_ptr<Material> material, DirectX::XMFLOAT2 s);
 	shared_ptr<SlenderMan> CreateSlenderman(shared_ptr<Material> slendermanMaterial, float pos, shared_ptr<Camera> player);
+	shared_ptr<Entity> CreateWall(shared_ptr<Material> wallMaterial);
 
 	shared_ptr<CollisionManager> CreateCollisionManager(shared_ptr<Camera> camera);
 	shared_ptr<Camera> CreateCamera(float width, float height);

@@ -93,6 +93,7 @@ void Game::LoadShaders()
 	note = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	lamp = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	slendermanMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
+	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	
 	// load the textures and bump maps
 	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
@@ -151,6 +152,11 @@ void Game::LoadShaders()
 	lamp->AddTextureProperties(L"Textures/LampR.png", MATERIAL_FEATURES::ROUGHNESS);
 	lamp->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
+	brick->AddTextureProperties(L"Textures/Brick.tif", MATERIAL_FEATURES::TEXTURE);
+	brick->AddTextureProperties(L"Textures/BrickN.tif", MATERIAL_FEATURES::NORMAL_MAP);
+	brick->AddTextureProperties(L"Textures/BrickR.png", MATERIAL_FEATURES::ROUGHNESS);
+	brick->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
 	slendermanMaterial->AddTextureProperties(L"Textures/slenderman.png", MATERIAL_FEATURES::TEXTURE);
 
 
@@ -169,7 +175,7 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateBasicGeometry()
 {
-	auto groundEnt = gameFactory->CreateFloor(grass, 0.0f);
+	auto groundEnt = gameFactory->CreateEntity("Models/Plane.obj" ,grass, 0.0f);
 	entities.push_back(groundEnt);
 
 	// shipping container
@@ -229,6 +235,13 @@ void Game::CreateBasicGeometry()
 	slenderman->SetTranslation(16.0f, 0.0f, 0.0f);
 	collisionManager->addCollider(slenderman);
 	entities.push_back(slenderman);
+
+	// Walls
+	auto wall = gameFactory->CreateEntity("Models/Wall.obj", brick, 0.0f);
+	wall->SetTranslation(XMFLOAT3(1.5, 0.0, -1.5f));
+	entities.push_back(wall);
+
+
 
     SpawnTreeGrid(150, 150, 8);
 	SpawnLetters(-15.0f, 0.0f, 95.3f, XMQuaternionRotationRollPitchYaw(0.0f, 0.0f, 3.1415926f / 2.0f));
@@ -338,6 +351,12 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 
                 offsetX *= step / 2;
                 offsetZ *= step / 3;
+
+				float randAngle = rand() % 360;
+				randAngle = XMConvertToRadians(randAngle);
+				XMFLOAT4 rot;
+				XMStoreFloat4(&rot, XMQuaternionRotationAxis(XMVectorSet(0.0, 1.0, 0.0, 1.0), randAngle));
+				tree->SetRotation(rot);
                
                 tree->SetTranslation(i + offsetX, -3, j + offsetZ);			
                 collisionManager->addCollider(tree);
@@ -663,7 +682,7 @@ void Game::Draw(float deltaTime, float totalTime)
     // loop through each mesh
     for (int i = 0; i < entities.size(); i++) {
         // prepare the material by setting the matrices and shaders in these order
-		if (!entities[i]->GetDraw() && i > 8) continue;
+		if (!entities[i]->GetDraw() && i > 10) continue;
 		drawn++;
 		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
 		camera->SendViewMatrixToGPU(vertexShader, "view");

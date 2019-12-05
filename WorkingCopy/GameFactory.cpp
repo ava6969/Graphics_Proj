@@ -63,6 +63,20 @@ shared_ptr<SlenderMan> GameFactory::CreateSlenderman(shared_ptr<Material> slende
 	return make_shared<SlenderMan>(mesh, slendermanMaterial, pos, player);
 }
 
+shared_ptr<Entity> GameFactory::CreateWall(shared_ptr<Material> wallMaterial)
+{
+	Vertex vertices[] =
+	{
+		{ XMFLOAT3(-160.0f, -2.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,0) },
+		{ XMFLOAT3(-160.0f, 10.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(0,6) },
+		{ XMFLOAT3(+160.0f, 10.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(160,6) },
+		{ XMFLOAT3(+160.0f, -2.0f, +160.0f), XMFLOAT3(0,1,0), XMFLOAT2(160,0) }
+	};
+	unsigned int indices[] = { 0,1,3,1,2,3 };
+
+	return CreateEntityWithVertex(vertices, indices, wallMaterial, 0);
+}
+
 
 shared_ptr<CollisionManager> GameFactory::CreateCollisionManager(shared_ptr<Camera> camera)
 {
