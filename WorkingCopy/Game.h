@@ -112,10 +112,14 @@ private:
 	ComPtr<ID3D11ShaderResourceView> paintMetallic;
 	ComPtr<ID3D11ShaderResourceView> slendermanAlbedo;
 	ComPtr<ID3D11ShaderResourceView> slendermanNormal;
+	ComPtr<ID3D11ShaderResourceView> EmitterTexture;
+
+
 
 
 	std::unique_ptr<Emitter> emitter_1;
-
+    ComPtr<ID3D11DepthStencilState> particleDepthState;
+    ComPtr<ID3D11BlendState> particleBlendState;
 
 
 	// shadows

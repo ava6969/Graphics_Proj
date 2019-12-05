@@ -439,14 +439,44 @@ void Game::DrawAText()
 void Game::CreateEmitters()
 {
 
+
+    // A depth state for the particles
+    D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+    dsDesc.DepthEnable = true;
+    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    device->CreateDepthStencilState(&dsDesc, &particleDepthState);
+
+
+    D3D11_BLEND_DESC blend = {};
+    blend.AlphaToCoverageEnable = false;
+    blend.IndependentBlendEnable = false;
+    blend.RenderTarget[0].BlendEnable = true;
+    blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_REV_SUBTRACT;
+    blend.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA; 
+    blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+    blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+    blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+    blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+    device->CreateBlendState(&blend, &particleBlendState);
+
 	emitterVS = make_shared < SimpleVertexShader >(device, context);
 	emitterVS->LoadShaderFile(L"ParticleVS.cso");
 
 	emitterPS = make_shared < SimplePixelShader >(device, context);
 	emitterPS->LoadShaderFile(L"ParticlePS.cso");
 
-	emitter_1 = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.8, .3, .3, 1), XMFLOAT4(.9, .9, .3, 1), XMFLOAT3(0, -.1, 0),
-		XMFLOAT3(.3, 0, .3), XMFLOAT3(0, .5f, 0), XMFLOAT3(.1f, 0, .1f), XMFLOAT4(0, 0, 0, 0),XMFLOAT3(0, .3, 0), emitterVS, emitterPS, copperRough);
+    CreateWICTextureFromFileEx(device, context, L"Textures/particle.jpg", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, WIC_LOADER_FORCE_SRGB, nullptr, &EmitterTexture);
+
+	emitter_1 = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.03, .03, .03, 1), XMFLOAT4(.01, .01, .01, 1), XMFLOAT3(0, .1, 0),
+		XMFLOAT3(.5, .5, .5), XMFLOAT3(0, .5f, 0), XMFLOAT3(.1f, 0, .1f), XMFLOAT4(.3, .2, .1, 0),XMFLOAT3(0, .3, 0), emitterVS, emitterPS, EmitterTexture);
+
+    emitter_1->SetScale(3, 2);
+
+    
+
+
 }
 
 
@@ -490,7 +520,7 @@ void Game::Update(float deltaTime, float totalTime)
 		lights[0].Range = 30.0f;
 		lights[0].SpotFalloff = 50.0f;
 	}
-
+    //emitter_1->UpdatePosition(XMFLOAT3(.01, 0, 0));
 	emitter_1->Update(deltaTime);
 	// update the shadow view matrix
 	XMMATRIX viewShadow = XMMatrixLookToLH(
@@ -685,8 +715,18 @@ void Game::Draw(float deltaTime, float totalTime)
 	context->RSSetState(0);
 	context->OMSetDepthStencilState(0, 0);
 
+    //Draw Emitters
+    float blend[4] = { 1,1,1,1 };
+    context->OMSetBlendState(particleBlendState.Get(), blend, 0xffffffff);	
+    context->OMSetDepthStencilState(particleDepthState.Get(), 0);		
 
+    emitterPS->CopyAllBufferData();
 	emitter_1->Draw(context, camera);
+
+    // Reset to default states for next frame
+    context->OMSetBlendState(0, blend, 0xffffffff);
+    context->OMSetDepthStencilState(0, 0);
+    context->RSSetState(0);
 
 	DrawAText();
     // Present the back buffer to the user

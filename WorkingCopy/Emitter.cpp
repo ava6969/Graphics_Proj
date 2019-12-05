@@ -118,6 +118,22 @@ void Emitter::Update(float deltaTime)
 	}
 }
 
+void Emitter::UpdatePosition(DirectX::XMFLOAT3 deltaP)
+{
+    emitterPosition = DirectX::XMFLOAT3(emitterPosition.x + deltaP.x, emitterPosition.y + deltaP.y, emitterPosition.z + deltaP.z);
+}
+
+void Emitter::SetPosition(DirectX::XMFLOAT3 newPos)
+{
+    emitterPosition = newPos;
+}
+
+void Emitter::SetScale(float startSize, float endSize)
+{
+    this->startSize = startSize;
+    this->endSize = endSize;
+}
+
 void Emitter::Draw(ID3D11DeviceContext* context, std::shared_ptr<Camera> cam)
 {
 	CopyParticlesToGPU(context, cam);
@@ -133,6 +149,7 @@ void Emitter::Draw(ID3D11DeviceContext* context, std::shared_ptr<Camera> cam)
 	vs->CopyAllBufferData();
 
 	ps->SetShaderResourceView("particle", texture.Get());
+
 
 	ps->SetShader();
 

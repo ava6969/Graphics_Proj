@@ -6,6 +6,8 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include <wrl/client.h>
+
+
 using namespace Microsoft::WRL;
 
 struct Particle {
@@ -50,6 +52,12 @@ public:
     ~Emitter();
 
     void Update(float deltaTime);
+
+    void UpdatePosition(DirectX::XMFLOAT3 deltaP);
+    void SetPosition(DirectX::XMFLOAT3 newPos);
+
+    void SetScale(float startSize, float endSize);
+
     void Draw(ID3D11DeviceContext* context, std::shared_ptr<Camera> cam);
 
 private:
