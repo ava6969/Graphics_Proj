@@ -467,6 +467,8 @@ void Game::CreateEmitters()
     device->CreateDepthStencilState(&dsDesc, &particleDepthState);
 
 
+
+	//TODO check blend dest for flashlight color
     D3D11_BLEND_DESC blend = {};
     blend.AlphaToCoverageEnable = false;
     blend.IndependentBlendEnable = false;
@@ -480,18 +482,44 @@ void Game::CreateEmitters()
     blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
     device->CreateBlendState(&blend, &particleBlendState_Slender);
 
+
+
+	blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_COLOR;
+	blend.RenderTarget[0].DestBlend = D3D11_BLEND_ONE;
+
+
+	blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+	
+
+
+	device->CreateBlendState(&blend, &particleBlendState_Campfire);
+
+	blend.RenderTarget[0].BlendEnable = false;
+	device->CreateBlendState(&blend, &particleBlendState_Ember);
+
+
+
+
 	emitterVS = make_shared < SimpleVertexShader >(device, context);
 	emitterVS->LoadShaderFile(L"ParticleVS.cso");
 
 	emitterPS = make_shared < SimplePixelShader >(device, context);
 	emitterPS->LoadShaderFile(L"ParticlePS.cso");
 
+
     CreateWICTextureFromFileEx(device, context, L"Textures/particle.jpg", 0, D3D11_USAGE_DEFAULT, D3D11_BIND_SHADER_RESOURCE, 0, 0, WIC_LOADER_FORCE_SRGB, nullptr, &EmitterTexture);
 
-	emitter_1 = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.03, .03, .03, 1), XMFLOAT4(.01, .01, .01, 1), XMFLOAT3(0, .1, 0),
+	emitter_Slender = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.03, .03, .03, 1), XMFLOAT4(.01, .01, .01, 1), XMFLOAT3(0, .1, 0),
 		XMFLOAT3(.5, .5, .5), XMFLOAT3(0, .5f, 0), XMFLOAT3(.1f, 0, .1f), XMFLOAT4(.3, .2, .1, 0),XMFLOAT3(0, .3, 0), emitterVS, emitterPS, EmitterTexture);
 
-    emitter_1->SetScale(3, 4);
+    emitter_Slender->SetScale(3, 4);
+
+	emitter_Campfire = gameFactory->CreateEmitter(500, .01, 1.5, XMFLOAT4(.63, .32, .27, 1), XMFLOAT4(.83, .52, .27, .7), XMFLOAT3(0, .5, 0),
+		XMFLOAT3(.2, .05, .2),XMFLOAT3(0, 0, 0), XMFLOAT3(.02, .02, .02), XMFLOAT4(0, 0, 0, 1), XMFLOAT3(0, .5, 0), emitterVS, emitterPS, EmitterTexture);
+
+	emitter_Campfire->SetScale(.5, .04);
 
     
 
@@ -539,11 +567,15 @@ void Game::Update(float deltaTime, float totalTime)
 		lights[0].Range = 30.0f;
 		lights[0].SpotFalloff = 50.0f;
 	}
-    //emitter_1->UpdatePosition(XMFLOAT3(.01, 0, 0));
-	emitter_1->Update(deltaTime);
+    //emitter_Slender->UpdatePosition(XMFLOAT3(.01, 0, 0));
+	emitter_Slender->Update(deltaTime);
 	XMFLOAT3 partPos = slenderman->GetPosition();
 	partPos.y += 2.0f;
-	emitter_1->SetPosition(partPos);
+	emitter_Slender->SetPosition(partPos);
+
+
+	emitter_Campfire->Update(deltaTime);
+
 	// update the shadow view matrix
 	XMMATRIX viewShadow = XMMatrixLookToLH(
 		XMLoadFloat3(&lights[0].Position),  // position
@@ -748,7 +780,11 @@ void Game::Draw(float deltaTime, float totalTime)
     context->OMSetDepthStencilState(particleDepthState.Get(), 0);		
 
     emitterPS->CopyAllBufferData();
-	emitter_1->Draw(context, camera);
+	emitter_Slender->Draw(context, camera);
+
+	context->OMSetBlendState(particleBlendState_Campfire.Get(), blend, 0xffffffff);
+	emitter_Campfire->Draw(context, camera);
+
 
     // Reset to default states for next frame
     context->OMSetBlendState(0, blend, 0xffffffff);
