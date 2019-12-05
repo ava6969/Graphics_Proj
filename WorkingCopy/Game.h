@@ -97,8 +97,6 @@ private:
 	shared_ptr<Material> slendermanMaterial;
 	shared_ptr<CollisionManager> collisionManager;
 
-	// Emitter
-	std::unique_ptr<Emitter> emitter;
 
 	// skybox mesh
 	shared_ptr<Mesh> skyMesh;
@@ -117,9 +115,14 @@ private:
 
 
 
-	std::unique_ptr<Emitter> emitter_1;
+	std::unique_ptr<Emitter> emitter_Slender;
+	std::unique_ptr<Emitter> emitter_Campfire;
+	std::unique_ptr<Emitter> emitter_Ember;
     ComPtr<ID3D11DepthStencilState> particleDepthState;
     ComPtr<ID3D11BlendState> particleBlendState_Slender;
+    ComPtr<ID3D11BlendState> particleBlendState_Campfire;
+    ComPtr<ID3D11BlendState> particleBlendState_Ember;
+
 
 
 	// shadows
