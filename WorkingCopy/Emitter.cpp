@@ -90,8 +90,8 @@ Emitter::~Emitter()
 {
 	//delete[] particles;
 	//delete[] partVerts;
-	//vertexBuffer->Release();
-	//indexBuffer->Release();
+	vertexBuffer->Release();
+	indexBuffer->Release();
 }
 
 void Emitter::Update(float deltaTime)

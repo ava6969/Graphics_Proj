@@ -34,6 +34,14 @@ SlenderMan::SlenderMan(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad
 	levels.minRanges.push_back(20.0f);
 	levels.teleportTimers.push_back(1.5f);
 
+	levels.maxRanges.push_back(10.0f);
+	levels.minRanges.push_back(20.0f);
+	levels.teleportTimers.push_back(1.5f);
+
+	levels.maxRanges.push_back(10.0f);
+	levels.minRanges.push_back(20.0f);
+	levels.teleportTimers.push_back(1.5f);
+
 	// Should be done with a parameter, but we can change this later
 	// Just set it to the worlds bounds
 	boundsMax = XMFLOAT2(160.0f, 160.0f);

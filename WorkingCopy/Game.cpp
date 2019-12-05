@@ -55,7 +55,7 @@ void Game::Init()
 	SetupShadows();
 	CreateBasicGeometry();
 	lightCount = 0;
-	letterCount = 5;
+	letterCount = 0;
 	GenerateLights();
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
@@ -330,7 +330,7 @@ void Game::SpawnTreeGrid(int x, int y, int step)
         for (int j = -y; j <= y; j += step) {
             float spawnSeed = (rand() % 100 + 1) / spawnStrenght;
             if (spawnSeed <= spawnChance) {
-				auto tree = gameFactory->CreateTree(treeMat, 1.0f);
+				auto tree = gameFactory->CreateTree(treeMat, 1.5f);
 				tree->SetTag("tree");
                 spawnStrenght = 1;
                 float offsetX = (rand() % 10 + 1) / 10.0f;
@@ -369,7 +369,7 @@ void Game::Destroy(shared_ptr<Entity> objectToDestroy)
 		{
 			auto toDelete = entities[count];
 			entities.erase(entities.begin() + count);
-			--letterCount;
+			letterCount++;
 		}
 		++count;
 	}
@@ -383,10 +383,10 @@ void Game::GenerateLights()
 	// set up the scene light
 	Light flashlight = gameFactory->CreateSpotlight(XMFLOAT3(0.0f, 0.0f, -3.0f),
 													XMFLOAT3(0.0f, 0.0f, 1.0f),
-													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,1.0f,50.f);
+													XMFLOAT3(1.0f, 1.0f, 1.0f),	30.0f,2.0f,30.f);
 	lights.push_back(flashlight);
 
-	Light lampLight = gameFactory->CreatePointLight(XMFLOAT3(99.3f, -0.1f, 66.0f), XMFLOAT3(1.0f, 1.0f, 0.0f), 10.0f, 1.0f);
+	Light lampLight = gameFactory->CreatePointLight(XMFLOAT3(99.3f, 0.0f, 65.8f), XMFLOAT3(1.0f, 1.0f, 0.0f), 10.0f, 1.0f);
 	lights.push_back(lampLight);
 
 	lightCount = lights.size();
@@ -472,7 +472,7 @@ void Game::CreateEmitters()
 	emitter_1 = gameFactory->CreateEmitter(200, .05f, 2, XMFLOAT4(.03, .03, .03, 1), XMFLOAT4(.01, .01, .01, 1), XMFLOAT3(0, .1, 0),
 		XMFLOAT3(.5, .5, .5), XMFLOAT3(0, .5f, 0), XMFLOAT3(.1f, 0, .1f), XMFLOAT4(.3, .2, .1, 0),XMFLOAT3(0, .3, 0), emitterVS, emitterPS, EmitterTexture);
 
-    emitter_1->SetScale(3, 2);
+    emitter_1->SetScale(3, 4);
 
     
 
@@ -522,6 +522,9 @@ void Game::Update(float deltaTime, float totalTime)
 	}
     //emitter_1->UpdatePosition(XMFLOAT3(.01, 0, 0));
 	emitter_1->Update(deltaTime);
+	XMFLOAT3 partPos = slenderman->GetPosition();
+	partPos.y += 2.0f;
+	emitter_1->SetPosition(partPos);
 	// update the shadow view matrix
 	XMMATRIX viewShadow = XMMatrixLookToLH(
 		XMLoadFloat3(&lights[0].Position),  // position
@@ -550,6 +553,11 @@ void Game::Update(float deltaTime, float totalTime)
     }
 
 	slenderman->Update(deltaTime);
+
+	XMFLOAT3 playerPos = camera->GetPosition();
+	playerPos.x = clamp(playerPos.x, -159.0f, 159.0f);
+	playerPos.z = clamp(playerPos.z, -159.0f, 159.0f);
+	camera->SetPosition(playerPos);
 }
 
 void Game::FlashlightBob(float deltaTime)
