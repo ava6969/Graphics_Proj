@@ -459,7 +459,7 @@ void Game::CreateEmitters()
     blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
     blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
     blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    device->CreateBlendState(&blend, &particleBlendState);
+    device->CreateBlendState(&blend, &particleBlendState_Slender);
 
 	emitterVS = make_shared < SimpleVertexShader >(device, context);
 	emitterVS->LoadShaderFile(L"ParticleVS.cso");
@@ -717,7 +717,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
     //Draw Emitters
     float blend[4] = { 1,1,1,1 };
-    context->OMSetBlendState(particleBlendState.Get(), blend, 0xffffffff);	
+    context->OMSetBlendState(particleBlendState_Slender.Get(), blend, 0xffffffff);
     context->OMSetDepthStencilState(particleDepthState.Get(), 0);		
 
     emitterPS->CopyAllBufferData();

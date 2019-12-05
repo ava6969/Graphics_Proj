@@ -119,7 +119,7 @@ private:
 
 	std::unique_ptr<Emitter> emitter_1;
     ComPtr<ID3D11DepthStencilState> particleDepthState;
-    ComPtr<ID3D11BlendState> particleBlendState;
+    ComPtr<ID3D11BlendState> particleBlendState_Slender;
 
 
 	// shadows
