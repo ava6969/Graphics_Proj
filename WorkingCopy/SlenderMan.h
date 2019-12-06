@@ -25,7 +25,7 @@ public:
 	//static AgroLevels levels;
 	inline int getAgroLevel() const { return agroLevel; }
 	inline void setAgroLevel(int const& agroLevel) { this->agroLevel = agroLevel; }
-
+	float DistancefromPlayer();
 
 private:
 
@@ -48,5 +48,6 @@ private:
 	void CheckStandingStill(float deltaTime);
 	void GetDistance();
 	void TurnToFacePlayer();
+	
 };
 

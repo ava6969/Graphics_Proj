@@ -37,7 +37,6 @@ private:
 	void LoadShaders(); 
 	void CreateBasicGeometry();
 	void SetupShadows();
-	void DrawAText();
 	void CreateEmitters();
 	void SpawnLetters(float x,float y ,float z, XMVECTOR rotation);
     void SpawnTreeGrid(int x, int y, int step);
@@ -97,7 +96,11 @@ private:
 	shared_ptr<Material> slendermanMaterial;
 	shared_ptr<Material> brick;
 	shared_ptr<CollisionManager> collisionManager;
-
+	bool gameOver;
+	bool youWin;
+	void DrawAText();
+	void GameOver();
+	void YouWin();
 
 	// skybox mesh
 	shared_ptr<Mesh> skyMesh;

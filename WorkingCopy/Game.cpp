@@ -49,7 +49,8 @@ void Game::Init()
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
 	gameFactory = make_shared<GameFactory>(device, context);
-
+	gameOver = false;
+	youWin = false;
 	LoadShaders();
 	CreateEmitters();
 	SetupShadows();
@@ -437,8 +438,8 @@ void Game::SpawnLetters(float x, float y, float z, XMVECTOR rotation)
 
 void Game::DrawAText()
 {
-
 	// create FPS information text layout
+	DXCore::InitializeTextFormats(D2D1::ColorF::ForestGreen, 15);
 	std::wostringstream outFPS;
 	outFPS.precision(6);
 	outFPS << "Letters Collected : " << letterCount << " of 5" << std::endl;
@@ -448,11 +449,49 @@ void Game::DrawAText()
 	 if (textLayoutFPS)
 	 {
 		 d2Context->BeginDraw();
-		 d2Context->DrawTextLayout(D2D1::Point2F(width - 200.0f ,height - 50.0f), textLayoutFPS.Get(), yellowBrush.Get()); // drawtextlayout first param: what point should text be drawn
+		 d2Context->DrawTextLayout(D2D1::Point2F(width - 300 ,height - 50.0f), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
 		 d2Context->EndDraw();
 
 	 }
+}
 
+void Game::GameOver()
+{
+	DXCore::InitializeTextFormats(D2D1::ColorF::YellowGreen, 100);
+	// create FPS information text layout
+	std::wostringstream outFPS;
+	outFPS.precision(20);
+	outFPS << "GameOver!!!" << std::endl;
+
+	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
+
+	if (textLayoutFPS)
+	{
+		d2Context->BeginDraw();
+		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 100, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
+		d2Context->EndDraw();
+
+	}
+
+}
+
+void Game::YouWin()
+{
+	DXCore::InitializeTextFormats(D2D1::ColorF::YellowGreen, 100);
+	// create FPS information text layout
+	std::wostringstream outFPS;
+	outFPS.precision(20);
+	outFPS << "YouWin!!!" << std::endl;
+
+	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
+
+	if (textLayoutFPS)
+	{
+		d2Context->BeginDraw();
+		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 100, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
+		d2Context->EndDraw();
+
+	}
 }
 
 void Game::CreateEmitters()
@@ -545,6 +584,16 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
+
+	if ( slenderman->DistancefromPlayer() <= 10.0f )
+	{
+		gameOver = true;
+	}
+
+	if (letterCount == 1)
+	{
+		youWin = true;
+	}
     // Quit if the escape key is pressed
     if (GetAsyncKeyState(VK_ESCAPE))
         Quit();
@@ -640,7 +689,8 @@ void Game::RenderShadows()
 	shadowVS->SetShader();
 	shadowVS->SetMatrix4x4("view", shadowViewMatrix);
 	shadowVS->SetMatrix4x4("projection", shadowProjectionMatrix);
-	context->PSSetShader(0, 0, 0); // No PS
+	context->PSSetShader(nullptr, nullptr, 0); // No PS
+	
 
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
@@ -682,119 +732,133 @@ void Game::Draw(float deltaTime, float totalTime)
 	// Render shadows first
 	RenderShadows();
 
-    // Background color (Cornflower Blue in this case) for clearing
-    //const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-    const float color[4] = { 0.1f, 0.1f, 0.1f, 0.0f };
+	// Background color (Cornflower Blue in this case) for clearing
+	//const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
+	const float color[4] = { 0.1f, 0.1f, 0.1f, 0.0f };
 
-    // Clear the render target and depth buffer (erases what's on the screen)
-    //  - Do this ONCE PER FRAME
-    //  - At the beginning of Draw (before drawing *anything*)
-    context->ClearRenderTargetView(backBufferRTV, color);
-    context->ClearDepthStencilView(
-        depthStencilView,
-        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-        1.0f,
-        0);
+	// Clear the render target and depth buffer (erases what's on the screen)
+	//  - Do this ONCE PER FRAME
+	//  - At the beginning of Draw (before drawing *anything*)
+	context->ClearRenderTargetView(backBufferRTV, color);
+	context->ClearDepthStencilView(
+		depthStencilView,
+		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+		1.0f,
+		0);
 
-	// Set lights in the shader
-	pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
-	pixelShader->SetInt("LightCount", lightCount);
-	camera->SendPositionToGPU(pixelShader, "CameraPosition");
-	pixelShader->CopyBufferData("perFrame");
-
-
-	// Set buffers in the input assembler
-	//  - Do this ONCE PER OBJECT you're drawing, since each object might
-	//    have different geometry.
-	UINT stride = sizeof(Vertex);
-	UINT offset = 0;
-
-
-	int drawn = 0;
-    // loop through each mesh
-    for (int i = 0; i < entities.size(); i++) {
-        // prepare the material by setting the matrices and shaders in these order
-		if (!entities[i]->GetDraw() && i > 10) continue;
-		drawn++;
-		entities[i]->SendWorldMatrixToGPU(vertexShader ,"world" );
-		camera->SendViewMatrixToGPU(vertexShader, "view");
-		camera->SendProjectionMatrixToGPU(vertexShader, "projection");
+	if (gameOver)
+	{
+		GameOver();
+	}
+	else if (youWin)
+	{
+		YouWin();
+	}
+	else
+	{
+		// Set lights in the shader
+		pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
+		pixelShader->SetInt("LightCount", lightCount);
 		camera->SendPositionToGPU(pixelShader, "CameraPosition");
-        entities[i]->GetMaterial()->PrepareMaterial(shadowViewMatrix, shadowProjectionMatrix, shadowSRV, shadowSampler);
+		pixelShader->CopyBufferData("perFrame");
 
 
-        // get a temp variable to access the buffer
-        ID3D11Buffer* vTemp = entities[i]->GetVertexBuffer();
-
-        // set the buffers
-        context->IASetVertexBuffers(0, 1, &vTemp, &stride, &offset);
-        context->IASetIndexBuffer(entities[i]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-        // Finally do the actual drawing
-        //  - Do this ONCE PER OBJECT you intend to draw
-        //  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-        //  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-        //     vertices in the currently set VERTEX BUFFER
-        context->DrawIndexed(
-            entities[i]->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-            0,     // Offset to the first index we want to use
-            0);    // Offset to add to each index when looking up vertices
-    }
-	//printf("Drawn Entities: %i\n", drawn);
-	// === Sky box drawing ======================
-// Draw the sky AFTER everything else to prevent overdraw
-
-// Set up sky states
-	context->RSSetState(sky->GetSkyRastState().Get());
-	context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
-
-	// Grab the data from the box mesh
-	ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
-	ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
-
-	// Set buffers in the input assembler
-	context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
-	context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
-	
-	// Set up the new sky shaders
-	skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
-	skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-
-	skyVS->CopyAllBufferData();
-	skyVS->SetShader();
-
-	skyPS->SetShader();
-	skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get() );
-	skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get() );
-
-	// Finally do the actual drawing
-	context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
-
-	// Reset states for next frame
-	context->RSSetState(0);
-	context->OMSetDepthStencilState(0, 0);
-
-    //Draw Emitters
-    float blend[4] = { 1,1,1,1 };
-    context->OMSetBlendState(particleBlendState_Slender.Get(), blend, 0xffffffff);
-    context->OMSetDepthStencilState(particleDepthState.Get(), 0);		
-
-    emitterPS->CopyAllBufferData();
-	emitter_Slender->Draw(context, camera);
-
-	context->OMSetBlendState(particleBlendState_Campfire.Get(), blend, 0xffffffff);
-	emitter_Campfire->Draw(context, camera);
+		// Set buffers in the input assembler
+		//  - Do this ONCE PER OBJECT you're drawing, since each object might
+		//    have different geometry.
+		UINT stride = sizeof(Vertex);
+		UINT offset = 0;
 
 
-    // Reset to default states for next frame
-    context->OMSetBlendState(0, blend, 0xffffffff);
-    context->OMSetDepthStencilState(0, 0);
-    context->RSSetState(0);
+		int drawn = 0;
+		// loop through each mesh
+		for (int i = 0; i < entities.size(); i++) {
+			// prepare the material by setting the matrices and shaders in these order
+			if (!entities[i]->GetDraw() && i > 10) continue;
+			drawn++;
+			entities[i]->SendWorldMatrixToGPU(vertexShader, "world");
+			camera->SendViewMatrixToGPU(vertexShader, "view");
+			camera->SendProjectionMatrixToGPU(vertexShader, "projection");
+			camera->SendPositionToGPU(pixelShader, "CameraPosition");
+			entities[i]->GetMaterial()->PrepareMaterial(shadowViewMatrix, shadowProjectionMatrix, shadowSRV, shadowSampler);
 
-	DrawAText();
-    // Present the back buffer to the user
-    //  - Puts the final frame we're drawing into the window so the user can see it
-    //  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
+
+			// get a temp variable to access the buffer
+			ID3D11Buffer* vTemp = entities[i]->GetVertexBuffer();
+
+			// set the buffers
+			context->IASetVertexBuffers(0, 1, &vTemp, &stride, &offset);
+			context->IASetIndexBuffer(entities[i]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
+
+			// Finally do the actual drawing
+			//  - Do this ONCE PER OBJECT you intend to draw
+			//  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
+			//  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
+			//     vertices in the currently set VERTEX BUFFER
+			context->DrawIndexed(
+				entities[i]->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
+				0,     // Offset to the first index we want to use
+				0);    // Offset to add to each index when looking up vertices
+		}
+		//printf("Drawn Entities: %i\n", drawn);
+		// === Sky box drawing ======================
+	// Draw the sky AFTER everything else to prevent overdraw
+
+	// Set up sky states
+		context->RSSetState(sky->GetSkyRastState().Get());
+		context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
+
+		// Grab the data from the box mesh
+		ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
+		ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
+
+		// Set buffers in the input assembler
+		context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
+		context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
+
+		// Set up the new sky shaders
+		skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
+		skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
+
+		skyVS->CopyAllBufferData();
+		skyVS->SetShader();
+
+		skyPS->SetShader();
+		skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get());
+		skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get());
+
+		// Finally do the actual drawing
+		context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
+
+		// Reset states for next frame
+		context->RSSetState(0);
+		context->OMSetDepthStencilState(0, 0);
+
+		//Draw Emitters
+		float blend[4] = { 1,1,1,1 };
+		context->OMSetBlendState(particleBlendState_Slender.Get(), blend, 0xffffffff);
+		context->OMSetDepthStencilState(particleDepthState.Get(), 0);
+
+		emitterPS->CopyAllBufferData();
+		emitter_Slender->Draw(context, camera);
+
+		context->OMSetBlendState(particleBlendState_Campfire.Get(), blend, 0xffffffff);
+		emitter_Campfire->Draw(context, camera);
+
+		// Reset to default states for next frame
+		context->OMSetBlendState(0, blend, 0xffffffff);
+		context->OMSetDepthStencilState(0, 0);
+		context->RSSetState(0);
+
+		DrawAText();
+		// Present the back buffer to the user
+		//  - Puts the final frame we're drawing into the window so the user can see it
+		//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
+
+	}
+
+
+
     swapChain->Present(0, 0);
 
     // Due to the usage of a more sophisticated swap chain effect,

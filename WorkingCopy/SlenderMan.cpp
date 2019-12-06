@@ -128,9 +128,7 @@ void SlenderMan::Teleport()
 	SetTranslation(newPos);
 
 	//printf("slenderMan teleported to (%f, %f, %f) \n", position.x, position.y, position.z);
-	printf("distance btw CAM and SM is %f \n", sqrt( pow(player->GetPosition().x - position.x, 2) +
-													pow(player->GetPosition().y - position.y, 2) +
-													pow(player->GetPosition().z - position.z, 2)));
+	printf("distance btw CAM and SM is %f \n", DistancefromPlayer());
 	
 
 }
@@ -210,6 +208,13 @@ void SlenderMan::GetDistance()
 void SlenderMan::TurnToFacePlayer()
 {
 	XMVECTOR dir = XMVector3Rotate(XMVectorSet(0, 0, 1, 0), XMLoadFloat4(&rotation));
+}
+
+float SlenderMan::DistancefromPlayer()
+{
+	return sqrt(pow(player->GetPosition().x - position.x, 2) +
+		pow(player->GetPosition().y - position.y, 2) +
+		pow(player->GetPosition().z - position.z, 2));
 }
 
 void SlenderMan::IncreaseLevel()

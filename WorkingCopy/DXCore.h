@@ -98,13 +98,11 @@ protected:
 	// Helper function for allocating a console window
 	void CreateConsoleWindow(int bufferLines, int bufferColumns, int windowLines, int windowColumns);
 	HRESULT CreateBitmapRenderTarget();
-	HRESULT InitializeTextFormats();
+	HRESULT InitializeTextFormats(D2D1::ColorF color, float fontSize);
 
 
 	// Colors
-	ComPtr<ID2D1SolidColorBrush> yellowBrush;
-	ComPtr<ID2D1SolidColorBrush> blackBrush;
-	ComPtr<ID2D1SolidColorBrush> whiteBrush;
+	ComPtr<ID2D1SolidColorBrush> Brush;
 
 	// Text Format
 	ComPtr<IDWriteTextFormat> textFormatFPS;

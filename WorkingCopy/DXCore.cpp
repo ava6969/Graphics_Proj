@@ -286,7 +286,7 @@ HRESULT DXCore::InitDirectX()
 	// Direct2Dstuffs
 	InitDirect2D();
 	CreateBitmapRenderTarget();
-	InitializeTextFormats();
+	InitializeTextFormats(D2D1::ColorF::Black, 1.0f);
 	// Return the "everything is ok" HRESULT value
 	return hr;
 }
@@ -296,6 +296,7 @@ HRESULT DXCore::InitDirect2D()
 
 	// create the Direct2D factory
 	D2D1_FACTORY_OPTIONS options;
+	ComPtr<IDXGIDevice> dxgiDevice;
 #ifndef NDEBUG
 	options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
 #else
@@ -303,17 +304,12 @@ HRESULT DXCore::InitDirect2D()
 #endif
 	// create the DirectWrite factory
 	if SUCCEEDED(DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), &writeFactory))
-	if SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory2), &options, &factory))
-		printf("SUCCESS: Created Direct2D Factory\n");
-
-	ComPtr<IDXGIDevice> dxgiDevice;
-	// get the dxgi device
-	if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice))) // change to regular pointer issue persist
-
-	// create the Direct2D device
-	if SUCCEEDED(factory->CreateDevice(dxgiDevice.Get(), &d2Device))
-
-	if (SUCCEEDED(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &d2Context)))
+		if SUCCEEDED(D2D1CreateFactory(D2D1_FACTORY_TYPE_MULTI_THREADED, __uuidof(ID2D1Factory2), &options, &factory))
+			// get the dxgi device
+			if (SUCCEEDED(device->QueryInterface(__uuidof(IDXGIDevice), &dxgiDevice))) // change to regular pointer issue persist
+			// create the Direct2D device
+				if SUCCEEDED(factory->CreateDevice(dxgiDevice.Get(), &d2Device))
+					if (SUCCEEDED(d2Device->CreateDeviceContext(D2D1_DEVICE_CONTEXT_OPTIONS_ENABLE_MULTITHREADED_OPTIMIZATIONS, &d2Context)))
 
 	return S_OK;
 
@@ -355,25 +351,16 @@ HRESULT DXCore::CreateBitmapRenderTarget()
 }
 
 		
-HRESULT DXCore::InitializeTextFormats()
+HRESULT DXCore::InitializeTextFormats(D2D1::ColorF color, float fontSize)
 {
 	// create standard brushes
-	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Yellow), &yellowBrush))
-		printf("SUCCESS: Created yellow brush\n");
-	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::Black), &blackBrush))
-		printf("SUCCESS: Created Black brush\n");
-	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &whiteBrush))
-		printf("SUCCESS: Created White brush\n");
+	if SUCCEEDED(d2Context->CreateSolidColorBrush(D2D1::ColorF(color), &Brush));
 		
-	// set up text formats
 
 	// FPS text
-	if(SUCCEEDED(writeFactory.Get()->CreateTextFormat(L"Lucida Console", nullptr, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, 12.0f, L"en-GB", &textFormatFPS)))
-		printf("SUCCESS: Created text format for FPS Information!\n");
-	if (SUCCEEDED(textFormatFPS->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING)))
-		printf("SUCCESS: Set Text Alignment\n");
-	if (SUCCEEDED(textFormatFPS->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)))
-		printf("SUCCESS:Set Paragraph Alignment\n");
+	if(SUCCEEDED(writeFactory.Get()->CreateTextFormat(L"Lucida Console", nullptr, DWRITE_FONT_WEIGHT_LIGHT, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, fontSize, L"en-GB", &textFormatFPS)))
+		if (SUCCEEDED(textFormatFPS->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING)))
+			if (SUCCEEDED(textFormatFPS->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR)))
 
 	// return success
 	return S_OK;
