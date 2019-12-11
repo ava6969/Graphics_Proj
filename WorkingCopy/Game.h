@@ -29,6 +29,8 @@ public:
 
     void SetConfig(Config con) {
         this->con = con;
+       
+
     }
 
 	// Overridden mouse input helper methods

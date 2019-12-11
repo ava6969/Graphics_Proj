@@ -61,7 +61,7 @@ bool Config::GetValue(const char* key, float* value)
         return false;
     }
     
-    value = &configData[searchKey];
+    *value = configData[searchKey];
 
     return true;
 
