@@ -1,7 +1,7 @@
 
 #include <Windows.h>
 #include "Game.h"
-
+#include "Config.h"
 
 // --------------------------------------------------------
 // Entry point for a graphical (non-console) Windows application
@@ -45,6 +45,12 @@ int WINAPI WinMain(
 		}
 	}
 
+
+    Config con;
+    con.Import();
+  
+
+
 	// Create the Game object using
 	// the app handle we got from WinMain
 	Game dxGame(hInstance);
@@ -62,7 +68,12 @@ int WINAPI WinMain(
 	hr = dxGame.InitDirectX();
 	if(FAILED(hr)) return hr;
 
-	// Begin the message and game loop, and then return
+
+    //Pass the config data to the Game
+    dxGame.SetConfig(con);
+	
+    
+    // Begin the message and game loop, and then return
 	// whatever we get back once the game loop is over
 	return dxGame.Run();
 }
