@@ -95,6 +95,8 @@ void Game::LoadShaders()
 	lamp = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	slendermanMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
 	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
+	campfireRocks = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
+	campfireSticks = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
 	
 	// load the textures and bump maps
 	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
@@ -125,7 +127,7 @@ void Game::LoadShaders()
 
 	tent->AddTextureProperties(L"Textures/TentA.jpg", MATERIAL_FEATURES::TEXTURE);
 	tent->AddTextureProperties(L"Textures/TentN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	tent->AddTextureProperties(L"Textures/TentR.png", MATERIAL_FEATURES::ROUGHNESS);
+	tent->AddTextureProperties(L"Textures/TentR.jpg", MATERIAL_FEATURES::ROUGHNESS);
 	tent->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
 	tower->AddTextureProperties(L"Textures/TowerA.png", MATERIAL_FEATURES::TEXTURE);
@@ -157,6 +159,16 @@ void Game::LoadShaders()
 	brick->AddTextureProperties(L"Textures/BrickN.tif", MATERIAL_FEATURES::NORMAL_MAP);
 	brick->AddTextureProperties(L"Textures/BrickR.png", MATERIAL_FEATURES::ROUGHNESS);
 	brick->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	campfireRocks->AddTextureProperties(L"Textures/rocks_diffuse.jpg", MATERIAL_FEATURES::TEXTURE);
+	campfireRocks->AddTextureProperties(L"Textures/rocks_normal.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	campfireRocks->AddTextureProperties(L"Textures/rocks_specular.jpg", MATERIAL_FEATURES::ROUGHNESS);
+	campfireRocks->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
+
+	campfireSticks->AddTextureProperties(L"Textures/woodsground_diffuse.jpg", MATERIAL_FEATURES::TEXTURE);
+	campfireSticks->AddTextureProperties(L"Textures/woodsground_normal.jpg", MATERIAL_FEATURES::NORMAL_MAP);
+	campfireSticks->AddTextureProperties(L"Textures/woodsground_specular.jpg", MATERIAL_FEATURES::ROUGHNESS);
+	campfireSticks->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
 
 	slendermanMaterial->AddTextureProperties(L"Textures/slenderman.png", MATERIAL_FEATURES::TEXTURE);
 
@@ -212,6 +224,16 @@ void Game::CreateBasicGeometry()
 	e4->SetScale(XMFLOAT3(0.5f, 0.5f, 0.5f));
 	collisionManager->addCollider(e4);
 	entities.push_back(e4);
+
+	auto e20 = gameFactory->CreateEntity("Models/Campfire_Rocks.obj", campfireRocks, 1.0f);
+	e20->SetTranslation(-86.0f, -1.9f, 29.0f);	
+	e20->SetScale(XMFLOAT3(0.15f, 0.15f, 0.15f));
+	collisionManager->addCollider(e20);
+	entities.push_back(e20);
+	auto e21 = gameFactory->CreateEntity("Models/Campfire.obj", campfireSticks, 0.0f);
+	e21->SetTranslation(-86.0f, -1.9f, 29.0f);
+	e21->SetScale(XMFLOAT3(0.15f, 0.15f, 0.15f));
+	entities.push_back(e21);
 
 	// tower
 	auto e5 = gameFactory->CreateEntity("Models/Tower.obj", tower, XMFLOAT2(5.5f, 5.5f));
@@ -409,6 +431,9 @@ void Game::GenerateLights()
 	Light lampLight = gameFactory->CreatePointLight(XMFLOAT3(99.3f, 0.0f, 65.8f), XMFLOAT3(1.0f, 1.0f, 0.0f), 10.0f, 1.0f);
 	lights.push_back(lampLight);
 
+	Light campLight = gameFactory->CreatePointLight(XMFLOAT3(-86.0f, -0.5f, 29.0f), XMFLOAT3(1.0f, 0.8f, 0.0f), 10.0f, 3.0f);
+	lights.push_back(campLight);
+
 	lightCount = lights.size();
 	lights.resize(MAX_LIGHTS);
 
@@ -461,14 +486,14 @@ void Game::GameOver()
 	// create FPS information text layout
 	std::wostringstream outFPS;
 	outFPS.precision(20);
-	outFPS << "GameOver!!!" << std::endl;
+	outFPS << "Game Over!!!" << std::endl;
 
 	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
 
 	if (textLayoutFPS)
 	{
 		d2Context->BeginDraw();
-		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 100, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
+		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 220, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
 		d2Context->EndDraw();
 
 	}
@@ -481,14 +506,14 @@ void Game::YouWin()
 	// create FPS information text layout
 	std::wostringstream outFPS;
 	outFPS.precision(20);
-	outFPS << "YouWin!!!" << std::endl;
+	outFPS << "You Win!!!" << std::endl;
 
 	writeFactory->CreateTextLayout(outFPS.str().c_str(), (UINT32)outFPS.str().size(), textFormatFPS.Get(), width, height, &textLayoutFPS);
 
 	if (textLayoutFPS)
 	{
 		d2Context->BeginDraw();
-		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 100, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
+		d2Context->DrawTextLayout(D2D1::Point2F(width / 2 - 250, height / 2), textLayoutFPS.Get(), Brush.Get()); // drawtextlayout first param: what point should text be drawn
 		d2Context->EndDraw();
 
 	}
@@ -556,9 +581,9 @@ void Game::CreateEmitters()
     emitter_Slender->SetScale(3, 4);
 
 	emitter_Campfire = gameFactory->CreateEmitter(500, .01, 1.5, XMFLOAT4(.63, .32, .27, 1), XMFLOAT4(.83, .52, .27, .7), XMFLOAT3(0, .5, 0),
-		XMFLOAT3(.2, .05, .2),XMFLOAT3(0, 0, 0), XMFLOAT3(.02, .02, .02), XMFLOAT4(0, 0, 0, 1), XMFLOAT3(0, .5, 0), emitterVS, emitterPS, EmitterTexture);
+		XMFLOAT3(.2, .05, .2),XMFLOAT3(-86.0f, -1.3f, 29.0f), XMFLOAT3(.02, .02, .02), XMFLOAT4(0, 0, 0, 1), XMFLOAT3(0, .5, 0), emitterVS, emitterPS, EmitterTexture);
 
-	emitter_Campfire->SetScale(.5, .04);
+	emitter_Campfire->SetScale(.8, .04);
 
     
 
@@ -590,7 +615,7 @@ void Game::Update(float deltaTime, float totalTime)
 		gameOver = true;
 	}
 
-	if (letterCount == 1)
+	if (letterCount == 5)
 	{
 		youWin = true;
 	}
@@ -622,7 +647,10 @@ void Game::Update(float deltaTime, float totalTime)
 	partPos.y += 2.0f;
 	emitter_Slender->SetPosition(partPos);
 
-
+	// campfire
+	float intensity = abs(sin(totalTime * 3.0f)) + 0.5f;
+	lights[2].Intensity = intensity;
+	lights[2].Range = (intensity * 2) + 5.0f;
 	emitter_Campfire->Update(deltaTime);
 
 	// update the shadow view matrix
@@ -774,7 +802,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		// loop through each mesh
 		for (int i = 0; i < entities.size(); i++) {
 			// prepare the material by setting the matrices and shaders in these order
-			if (!entities[i]->GetDraw() && i > 10) continue;
+			if (!entities[i]->GetDraw() && i > 12) continue;
 			drawn++;
 			entities[i]->SendWorldMatrixToGPU(vertexShader, "world");
 			camera->SendViewMatrixToGPU(vertexShader, "view");

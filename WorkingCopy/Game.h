@@ -95,6 +95,8 @@ private:
 	shared_ptr<Material> lamp;
 	shared_ptr<Material> slendermanMaterial;
 	shared_ptr<Material> brick;
+	shared_ptr<Material> campfireRocks;
+	shared_ptr<Material> campfireSticks;
 	shared_ptr<CollisionManager> collisionManager;
 	bool gameOver;
 	bool youWin;
