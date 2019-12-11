@@ -757,6 +757,11 @@ void Game::RenderShadows()
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+
+    float* data = 0;
+    con.GetValue("Gamma", data);
+
+    printf("%f", &data);
 	// Render shadows first
 	RenderShadows();
 

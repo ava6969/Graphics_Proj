@@ -12,6 +12,7 @@
 #include "SlenderMan.h"
 #include "GameFactory.h"
 #include "Emitter.h"
+#include "Config.h"
 class Game 
 	: public DXCore
 {
@@ -25,6 +26,10 @@ public:
 	void OnResize();
 	void Update(float deltaTime, float totalTime);
 	void Draw(float deltaTime, float totalTime);
+
+    void SetConfig(Config con) {
+        this->con = con;
+    }
 
 	// Overridden mouse input helper methods
 	void OnMouseDown (WPARAM buttonState, int x, int y);
@@ -129,7 +134,8 @@ private:
     ComPtr<ID3D11BlendState> particleBlendState_Campfire;
     ComPtr<ID3D11BlendState> particleBlendState_Ember;
 
-
+    //Config data
+    Config con;
 
 	// shadows
 	int shadowMapSize;
