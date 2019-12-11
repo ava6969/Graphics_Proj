@@ -31,6 +31,7 @@ public:
 	void OnMouseUp	 (WPARAM buttonState, int x, int y);
 	void OnMouseMove (WPARAM buttonState, int x, int y);
 	void OnMouseWheel(float wheelDelta,   int x, int y);
+	void ChangeStatic(float amount);		// Increases or decreases static based on slenderman proximity to player
 private:
 
 	// Initialization helper methods - feel free to customize, combine, etc.
@@ -41,7 +42,6 @@ private:
 	void SpawnLetters(float x,float y ,float z, XMVECTOR rotation);
     void SpawnTreeGrid(int x, int y, int step);
 	void Destroy(shared_ptr<Entity> objectToDestroy);
-	void ChangeStatic();		// Increases or decreases static based on slenderman proximity to player
 	void RenderShadows();
 	void FlashlightBob(float deltaTime);
 
@@ -50,7 +50,7 @@ private:
 	int lightCount;
 	// Letter Stuffs
 	int letterCount;
-	float staticPercent;		// Controls static effect, may change depending on post processing implementation
+	float staticValue;		// Controls static effect, may change depending on post processing implementation
 
 	// Wrappers for DirectX shaders to provide simplified functionality
 	shared_ptr < SimpleVertexShader > vertexShader;
@@ -61,6 +61,12 @@ private:
 
 	shared_ptr<SimpleVertexShader> emitterVS;
 	shared_ptr<SimplePixelShader> emitterPS;
+
+	ComPtr<ID3D11SamplerState> postProcessSS;
+
+	// Post Processing shaders
+	shared_ptr<SimpleVertexShader> postProcessVS;
+	shared_ptr<SimplePixelShader> postProcessPS;
 
 
 	// Keeps track of the old mouse position.  Useful for 
@@ -137,5 +143,9 @@ private:
 	ComPtr<ID3D11RasterizerState> shadowRasterizer;
 	DirectX::XMFLOAT4X4 shadowViewMatrix;
 	DirectX::XMFLOAT4X4 shadowProjectionMatrix;
+
+	// Post Process
+	ComPtr<ID3D11RenderTargetView> postProcessRTV;
+	ComPtr<ID3D11ShaderResourceView> postProcessSRV;
 };
 

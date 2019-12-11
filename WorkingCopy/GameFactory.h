@@ -37,6 +37,7 @@ public:
 
 	shared_ptr<Material> CreateMaterial(shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader, XMFLOAT3 specColor);
 	shared_ptr<Material> CreateSkyBox(const wchar_t* ddsFile, shared_ptr<SimpleVertexShader> vShader, shared_ptr<SimplePixelShader> pShader);
+	void SetUpPostProcess(ComPtr<ID3D11RenderTargetView> RTV, ComPtr<ID3D11ShaderResourceView> SRV, ComPtr<ID3D11SamplerState> postProcessSS, unsigned int width, unsigned int height);
 	inline shared_ptr<Mesh> CreateCubeMesh() { return make_shared<Mesh>("Models/cube.obj", device); }
 	inline shared_ptr<Mesh> CreateSphereMesh() { return make_shared<Mesh>("Models/sphere.obj", device); }
 

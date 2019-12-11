@@ -58,6 +58,7 @@ void Game::Init()
 	lightCount = 0;
 	letterCount = 0;
 	GenerateLights();
+	gameFactory->SetUpPostProcess(postProcessRTV, postProcessSRV, postProcessSS, width, height);
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -168,6 +169,13 @@ void Game::LoadShaders()
 	skyPS->LoadShaderFile(L"PSSky.cso");
 
 	sky = gameFactory->CreateSkyBox(L"Textures/NightSky.dds", skyVS, skyPS);
+
+	// Post Processing
+	postProcessVS = make_shared<SimpleVertexShader>(device, context);
+	postProcessVS->LoadShaderFile(L"PostProcessVertexShader.cso");
+
+	postProcessPS = make_shared<SimplePixelShader>(device, context);
+	postProcessPS->LoadShaderFile(L"PostProcessPixelShader.cso");
 }
 
 
@@ -375,8 +383,9 @@ void Game::SpawnTreeGrid(int x, int y, int step)
 }
 
 // Affects the amount of static on the screen
-void Game::ChangeStatic()
+void Game::ChangeStatic(float amount)
 {
+	staticValue = amount;
 }
 
 void Game::Destroy(shared_ptr<Entity> objectToDestroy)
@@ -740,11 +749,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	//  - Do this ONCE PER FRAME
 	//  - At the beginning of Draw (before drawing *anything*)
 	context->ClearRenderTargetView(backBufferRTV, color);
+	context->ClearRenderTargetView(postProcessRTV.Get(), color);
 	context->ClearDepthStencilView(
 		depthStencilView,
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
 		1.0f,
 		0);
+
+	// Set render target for post processing
+	context->OMSetRenderTargets(1, &postProcessRTV, depthStencilView);
 
 	if (gameOver)
 	{
@@ -855,6 +868,36 @@ void Game::Draw(float deltaTime, float totalTime)
 		//  - Puts the final frame we're drawing into the window so the user can see it
 		//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
 
+		// Set up for Post Proccessing and send data to Post Processing shaders
+		context->OMSetRenderTargets(1, &backBufferRTV, 0);
+
+		// Set up post process shaders
+		postProcessVS->SetShader();
+
+		postProcessPS->SetShaderResourceView("Pixels", postProcessSRV.Get());
+		postProcessPS->SetSamplerState("Sampler", postProcessSS.Get());
+		postProcessPS->SetShader();
+
+		postProcessPS->SetFloat("pixelWidth", 1.0f / width);
+		postProcessPS->SetFloat("pixelHeight", 1.0f / height);
+		postProcessPS->SetFloat("staticValue", 15.0f);
+		postProcessPS->SetFloat("totalTime", totalTime);
+		postProcessPS->CopyAllBufferData();
+
+		// Turn OFF vertex and index buffers
+		ID3D11Buffer* nothing = 0;
+		context->IASetIndexBuffer(0, DXGI_FORMAT_R32_UINT, 0);
+		context->IASetVertexBuffers(0, 1, &nothing, &stride, &offset);
+
+		// Draw exactly 3 vertices for our "full screen triangle"
+		context->Draw(3, 0);
+
+
+		// Unbind shader resource views at the end of the frame,
+		// since we'll be rendering into one of those textures
+		// at the start of the next
+		ID3D11ShaderResourceView* nullSRVs[16] = {};
+		context->PSSetShaderResources(0, 16, nullSRVs);
 	}
 
 

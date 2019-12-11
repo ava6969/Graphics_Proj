@@ -9,6 +9,8 @@
     <FxCompile Include="ShadowVS.hlsl" />
     <FxCompile Include="ParticlePS.hlsl" />
     <FxCompile Include="ParticleVS.hlsl" />
+    <FxCompile Include="PostProcessPixelShader.hlsl" />
+    <FxCompile Include="PostProcessVertexShader.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />

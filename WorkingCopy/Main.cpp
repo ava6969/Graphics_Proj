@@ -1,6 +1,7 @@
 
 #include <Windows.h>
 #include "Game.h"
+#include <time.h>
 
 
 // --------------------------------------------------------
@@ -44,6 +45,8 @@ int WINAPI WinMain(
 			SetCurrentDirectory(currentDir);
 		}
 	}
+
+	srand(time(NULL));
 
 	// Create the Game object using
 	// the app handle we got from WinMain
