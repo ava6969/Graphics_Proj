@@ -129,15 +129,7 @@ void Game::LoadShaders()
     shadowVS = make_shared <SimpleVertexShader>(device, context);
     shadowVS->LoadShaderFile(L"ShadowVS.cso");
 
-    //Set the gamma level here
-    float data = 0;
-    //If the key exists set the 
-    if (con.GetValue("Gamma", &data)) {
-        pixelShader->SetFloat("gammaLevel", data);
-    }
-    else {
-        pixelShader->SetFloat("gammaLevel", 1.0f);
-    }
+    
 
     defaultMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
     paint = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.07f, 0.07f, 0.07f));
@@ -238,7 +230,7 @@ void Game::LoadShaders()
 
     sky = gameFactory->CreateSkyBox(L"Textures/NightSky.dds", skyVS, skyPS);
 
-
+	
 	// Post Processing
 	postProcessVS = make_shared<SimpleVertexShader>(device, context);
 	postProcessVS->LoadShaderFile(L"PostProcessVertexShader.cso");
@@ -875,7 +867,17 @@ void Game::Draw(float deltaTime, float totalTime)
 		pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
 		pixelShader->SetInt("LightCount", lightCount);
 		camera->SendPositionToGPU(pixelShader, "CameraPosition");
-		pixelShader->CopyBufferData("perFrame");
+		//Set the gamma level here
+		float data = 0;
+		//If the key exists set the 
+		if (con.GetValue("Gamma", &data)) {
+			pixelShader->SetFloat("gammaLevel", data);
+		}
+		else {
+			pixelShader->SetFloat("gammaLevel", 1.0f);
+		}
+		
+		pixelShader->CopyAllBufferData();
 
 
 		// Set buffers in the input assembler
@@ -939,6 +941,12 @@ void Game::Draw(float deltaTime, float totalTime)
 		skyVS->SetShader();
 
 		skyPS->SetShader();
+		if (con.GetValue("GammaSky", &data)) {
+			skyPS->SetFloat("skyGamma", data);
+		}
+		else {
+			skyPS->SetFloat("skyGamma", 2.2f);
+		}
 		skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get());
 		skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get());
 

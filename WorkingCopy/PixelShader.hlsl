@@ -24,6 +24,8 @@ cbuffer perFrame : register(b1)
 	float3 CameraPosition;
 
 	int UsePBR;
+
+	float gammaLevel;
 };
 
 
@@ -57,8 +59,7 @@ Texture2D shadowMap			: register(t4);
 SamplerState basicSampler	: register(s0);
 SamplerComparisonState shadowSampler  : register(s1);
 
-//gamma level
-float gammaLevel : register(b2);
+
 
 
 float4 main(VertexToPixel input) : SV_TARGET
@@ -70,7 +71,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample texture
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	// gamma correct
-	surfaceColor = pow(surfaceColor, gammaLevel);
+	surfaceColor = pow(surfaceColor, 1.04f);
 	// Use normal mapping
 	float3 mapColor = NormalMapping(normalMap, basicSampler, input.uv, input.normal, input.tangent);
 	// Sample the roughness map
