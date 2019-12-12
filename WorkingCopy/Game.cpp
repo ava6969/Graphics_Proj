@@ -58,7 +58,55 @@ void Game::Init()
 	lightCount = 0;
 	letterCount = 0;
 	GenerateLights();
-	gameFactory->SetUpPostProcess(postProcessRTV, postProcessSRV, postProcessSS, width, height);
+
+	// Setup post processing
+	D3D11_SAMPLER_DESC sampDesc = {};
+	sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;//D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sampDesc.MaxAnisotropy = 16;
+	sampDesc.MinLOD = 0;
+	sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&sampDesc, &postProcessSS);
+
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = width;
+	textureDesc.Height = height;
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+
+	ID3D11Texture2D* ppTexture;
+	device->CreateTexture2D(&textureDesc, 0, &ppTexture);
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+
+	device->CreateRenderTargetView(ppTexture, &rtvDesc, &postProcessRTV);
+
+	// Create the Shader Resource View
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = textureDesc.Format;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+
+	device->CreateShaderResourceView(ppTexture, &srvDesc, &postProcessSRV);
+
+	ppTexture->Release();
+
+	//gameFactory->SetUpPostProcess(postProcessRTV, postProcessSRV, postProcessSS, width, height);
 	// Tell the input assembler stage of the pipeline what kind of
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
@@ -594,15 +642,7 @@ void Game::OnResize()
 void Game::Update(float deltaTime, float totalTime)
 {
 
-	if ( slenderman->DistancefromPlayer() <= 10.0f )
-	{
-		gameOver = true;
-	}
 
-	if (letterCount == 1)
-	{
-		youWin = true;
-	}
     // Quit if the escape key is pressed
     if (GetAsyncKeyState(VK_ESCAPE))
         Quit();
@@ -667,6 +707,16 @@ void Game::Update(float deltaTime, float totalTime)
 	playerPos.x = clamp(playerPos.x, -159.0f, 159.0f);
 	playerPos.z = clamp(playerPos.z, -159.0f, 159.0f);
 	camera->SetPosition(playerPos);
+
+	if (slenderman->DistancefromPlayer() <= 10.0f)
+	{
+		gameOver = true;
+	}
+
+	if (letterCount == 5)
+	{
+		youWin = true;
+	}
 }
 
 void Game::FlashlightBob(float deltaTime)
@@ -757,7 +807,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		0);
 
 	// Set render target for post processing
-	context->OMSetRenderTargets(1, &postProcessRTV, depthStencilView);
+	context->OMSetRenderTargets(1, postProcessRTV.GetAddressOf(), depthStencilView);
 
 	if (gameOver)
 	{
@@ -880,7 +930,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		postProcessPS->SetFloat("pixelWidth", 1.0f / width);
 		postProcessPS->SetFloat("pixelHeight", 1.0f / height);
-		postProcessPS->SetFloat("staticValue", 15.0f);
+		postProcessPS->SetFloat("staticValue", 0.5f);
 		postProcessPS->SetFloat("totalTime", totalTime);
 		postProcessPS->CopyAllBufferData();
 
