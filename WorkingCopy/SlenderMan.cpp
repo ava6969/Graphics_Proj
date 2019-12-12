@@ -47,7 +47,7 @@ SlenderMan::SlenderMan(shared_ptr<Mesh> m, shared_ptr < Material> mat, float rad
 	boundsMax = XMFLOAT2(160.0f, 160.0f);
 	boundsMin = XMFLOAT2(-160.0f, -160.0f);
 
-	isVisible = false;
+	isVisible = true;
 
 	timer = 0.0f;
 	stopTeleport = false;
@@ -136,10 +136,9 @@ void SlenderMan::Teleport()
 bool SlenderMan::CheckLineOfSight()
 {
 	if (isVisible) {
-		/*
-		Raycast stuff goes here
-		*/
-		
+		if (GetDraw()) {
+			return false;
+		}
 	}
 	return true;
 }

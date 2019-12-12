@@ -708,6 +708,14 @@ void Game::Update(float deltaTime, float totalTime)
 	playerPos.z = clamp(playerPos.z, -159.0f, 159.0f);
 	camera->SetPosition(playerPos);
 
+	if (slenderman->DistancefromPlayer() <= 40.0f) {
+		staticValue = 5.0f / slenderman->DistancefromPlayer();
+	}
+
+	else if (staticValue != 0.0f) {
+		staticValue = 0.0f;
+	}
+
 	if (slenderman->DistancefromPlayer() <= 10.0f)
 	{
 		gameOver = true;
@@ -930,7 +938,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 		postProcessPS->SetFloat("pixelWidth", 1.0f / width);
 		postProcessPS->SetFloat("pixelHeight", 1.0f / height);
-		postProcessPS->SetFloat("staticValue", 0.5f);
+		postProcessPS->SetFloat("staticValue", staticValue);
 		postProcessPS->SetFloat("totalTime", totalTime);
 		postProcessPS->CopyAllBufferData();
 
