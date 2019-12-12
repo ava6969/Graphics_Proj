@@ -27,6 +27,7 @@
     <ClCompile Include="SimpleShader.cpp" />
     <ClCompile Include="SlenderMan.cpp" />
     <ClCompile Include="Emitter.cpp" />
+    <ClCompile Include="Config.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Camera.h" />
@@ -45,6 +46,7 @@
     <ClInclude Include="SlenderMan.h" />
     <ClInclude Include="Vertex.h" />
     <ClInclude Include="Emitter.h" />
+    <ClInclude Include="Config.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="lighting.hlsli" />

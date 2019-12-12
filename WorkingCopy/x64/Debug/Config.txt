@@ -1,0 +1,2 @@
+Gamma:1.05,
+GammaSky:2.2,
