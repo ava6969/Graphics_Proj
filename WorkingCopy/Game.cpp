@@ -45,7 +45,6 @@ Game::Game(HINSTANCE hInstance)
 // --------------------------------------------------------
 void Game::Init()
 {
-<<<<<<< HEAD
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
@@ -112,25 +111,6 @@ void Game::Init()
 	// geometric primitives (points, lines or triangles) we want to draw.  
 	// Essentially: "What kind of shape should the GPU draw with our data?"
 	context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-=======
-    // Helper methods for loading shaders, creating some basic
-    // geometry to draw and some simple camera matrices.
-    //  - You'll be expanding and/or replacing these later
-    gameFactory = make_shared<GameFactory>(device, context);
-    gameOver = false;
-    youWin = false;
-    LoadShaders();
-    CreateEmitters();
-    SetupShadows();
-    CreateBasicGeometry();
-    lightCount = 0;
-    letterCount = 0;
-    GenerateLights();
-    // Tell the input assembler stage of the pipeline what kind of
-    // geometric primitives (points, lines or triangles) we want to draw.  
-    // Essentially: "What kind of shape should the GPU draw with our data?"
-    context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
->>>>>>> bc25f2e8ee54f871a28806d6be0e351443e8dab6
 }
 
 // Loads shaders from compiled shader object (.cso) files using
@@ -146,106 +126,6 @@ void Game::LoadShaders()
     pixelShader = make_shared < SimplePixelShader >(device, context);
     pixelShader->LoadShaderFile(L"PixelShader.cso");
 
-<<<<<<< HEAD
-	shadowVS = make_shared <SimpleVertexShader>(device, context);
-	shadowVS->LoadShaderFile(L"ShadowVS.cso");
-
-
-
-	defaultMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.955008f, 0.637427f, 0.538163f));
-	paint = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.07f, 0.07f, 0.07f));
-	grass = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.01f, 0.01f, 0.01f));
-	cabin = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
-	stone = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	tent = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.02f, 0.02f, 0.02f));
-	tower = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	truck = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.04f, 0.04f, 0.04f));
-	treeMat = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.01f, 0.01f, 0.01f));
-	note = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	lamp = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	slendermanMaterial = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	brick = gameFactory->CreateMaterial(vertexShader, pixelShader, XMFLOAT3(0.05f, 0.05f, 0.05f));
-	
-	// load the textures and bump maps
-	defaultMaterial->AddTextureProperties(L"Textures/Copper.tif", MATERIAL_FEATURES::TEXTURE);
-	defaultMaterial->AddTextureProperties(L"Textures/CopperN.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	defaultMaterial->AddTextureProperties(L"Textures/CopperR.tif", MATERIAL_FEATURES::ROUGHNESS);
-	defaultMaterial->AddTextureProperties(L"Textures/CopperM.tif", MATERIAL_FEATURES::METALNESS);
-
-	
-	paint->AddTextureProperties(L"Textures/ContainerA.png", MATERIAL_FEATURES::TEXTURE);
-	paint->AddTextureProperties(L"Textures/ContainerN.png", MATERIAL_FEATURES::NORMAL_MAP);
-	paint->AddTextureProperties(L"Textures/ContainerR.png", MATERIAL_FEATURES::ROUGHNESS);
-	paint->AddTextureProperties(L"Textures/ContainerM.png", MATERIAL_FEATURES::METALNESS);
-
-	grass->AddTextureProperties(L"Textures/GrassA.tif", MATERIAL_FEATURES::TEXTURE);
-	grass->AddTextureProperties(L"Textures/GrassN.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	grass->AddTextureProperties(L"Textures/MaxRough.tif", MATERIAL_FEATURES::ROUGHNESS);
-	grass->AddTextureProperties(L"Textures/NonMetal.tif", MATERIAL_FEATURES::METALNESS);
-
-	cabin->AddTextureProperties(L"Textures/WoodCabinA.jpg", MATERIAL_FEATURES::TEXTURE);
-	cabin->AddTextureProperties(L"Textures/WoodCabinN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	cabin->AddTextureProperties(L"Textures/WoodCabinR.jpg", MATERIAL_FEATURES::ROUGHNESS);
-	cabin->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	stone->AddTextureProperties(L"Textures/StoneA.jpg", MATERIAL_FEATURES::TEXTURE);
-	stone->AddTextureProperties(L"Textures/StoneN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	stone->AddTextureProperties(L"Textures/MaxRough.tif", MATERIAL_FEATURES::ROUGHNESS);
-	stone->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	tent->AddTextureProperties(L"Textures/TentA.jpg", MATERIAL_FEATURES::TEXTURE);
-	tent->AddTextureProperties(L"Textures/TentN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	tent->AddTextureProperties(L"Textures/TentR.png", MATERIAL_FEATURES::ROUGHNESS);
-	tent->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	tower->AddTextureProperties(L"Textures/TowerA.png", MATERIAL_FEATURES::TEXTURE);
-	tower->AddTextureProperties(L"Textures/TowerN.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	tower->AddTextureProperties(L"Textures/TowerR.png", MATERIAL_FEATURES::ROUGHNESS);
-	tower->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	truck->AddTextureProperties(L"Textures/oil-truck.tif", MATERIAL_FEATURES::TEXTURE);
-	truck->AddTextureProperties(L"Textures/oil-truckNrml.jpg", MATERIAL_FEATURES::NORMAL_MAP);
-	truck->AddTextureProperties(L"Textures/oil-truckR.tif", MATERIAL_FEATURES::ROUGHNESS);
-	truck->AddTextureProperties(L"Textures/oil-truckM.tif", MATERIAL_FEATURES::METALNESS);
-
-	treeMat->AddTextureProperties(L"Textures/BarkA.tif", MATERIAL_FEATURES::TEXTURE);
-	treeMat->AddTextureProperties(L"Textures/BarkN.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	treeMat->AddTextureProperties(L"Textures/BarkR.tif", MATERIAL_FEATURES::ROUGHNESS);
-	treeMat->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	note->AddTextureProperties(L"Textures/Note.jpg", MATERIAL_FEATURES::TEXTURE);
-	note->AddTextureProperties(L"Textures/CopprN.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	note->AddTextureProperties(L"Textures/BarkR.tif", MATERIAL_FEATURES::ROUGHNESS);
-	note->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	lamp->AddTextureProperties(L"Textures/LampA.png", MATERIAL_FEATURES::TEXTURE);
-	lamp->AddTextureProperties(L"Textures/LampN.png", MATERIAL_FEATURES::NORMAL_MAP);
-	lamp->AddTextureProperties(L"Textures/LampR.png", MATERIAL_FEATURES::ROUGHNESS);
-	lamp->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	brick->AddTextureProperties(L"Textures/Brick.tif", MATERIAL_FEATURES::TEXTURE);
-	brick->AddTextureProperties(L"Textures/BrickN.tif", MATERIAL_FEATURES::NORMAL_MAP);
-	brick->AddTextureProperties(L"Textures/BrickR.png", MATERIAL_FEATURES::ROUGHNESS);
-	brick->AddTextureProperties(L"Textures/NonMetal.png", MATERIAL_FEATURES::METALNESS);
-
-	slendermanMaterial->AddTextureProperties(L"Textures/slenderman.png", MATERIAL_FEATURES::TEXTURE);
-
-
-	skyVS = make_shared< SimpleVertexShader >(device, context);
-	skyVS->LoadShaderFile(L"VSSky.cso");
-
-	skyPS = make_shared< SimplePixelShader >(device, context);
-	skyPS->LoadShaderFile(L"PSSky.cso");
-
-	sky = gameFactory->CreateSkyBox(L"Textures/NightSky.dds", skyVS, skyPS);
-
-	// Post Processing
-	postProcessVS = make_shared<SimpleVertexShader>(device, context);
-	postProcessVS->LoadShaderFile(L"PostProcessVertexShader.cso");
-
-	postProcessPS = make_shared<SimplePixelShader>(device, context);
-	postProcessPS->LoadShaderFile(L"PostProcessPixelShader.cso");
-=======
     shadowVS = make_shared <SimpleVertexShader>(device, context);
     shadowVS->LoadShaderFile(L"ShadowVS.cso");
 
@@ -358,9 +238,13 @@ void Game::LoadShaders()
 
     sky = gameFactory->CreateSkyBox(L"Textures/NightSky.dds", skyVS, skyPS);
 
-  
 
->>>>>>> bc25f2e8ee54f871a28806d6be0e351443e8dab6
+	// Post Processing
+	postProcessVS = make_shared<SimpleVertexShader>(device, context);
+	postProcessVS->LoadShaderFile(L"PostProcessVertexShader.cso");
+
+	postProcessPS = make_shared<SimplePixelShader>(device, context);
+	postProcessPS->LoadShaderFile(L"PostProcessPixelShader.cso");
 }
 
 
@@ -791,10 +675,6 @@ void Game::OnResize()
 // --------------------------------------------------------
 void Game::Update(float deltaTime, float totalTime)
 {
-
-<<<<<<< HEAD
-
-=======
     if (slenderman->DistancefromPlayer() <= 10.0f)
     {
         gameOver = true;
@@ -804,7 +684,6 @@ void Game::Update(float deltaTime, float totalTime)
     {
         youWin = true;
     }
->>>>>>> bc25f2e8ee54f871a28806d6be0e351443e8dab6
     // Quit if the escape key is pressed
     if (GetAsyncKeyState(VK_ESCAPE))
         Quit();
@@ -868,7 +747,6 @@ void Game::Update(float deltaTime, float totalTime)
 
     slenderman->Update(deltaTime);
 
-<<<<<<< HEAD
 	XMFLOAT3 playerPos = camera->GetPosition();
 	playerPos.x = clamp(playerPos.x, -159.0f, 159.0f);
 	playerPos.z = clamp(playerPos.z, -159.0f, 159.0f);
@@ -891,12 +769,6 @@ void Game::Update(float deltaTime, float totalTime)
 	{
 		youWin = true;
 	}
-=======
-    XMFLOAT3 playerPos = camera->GetPosition();
-    playerPos.x = clamp(playerPos.x, -159.0f, 159.0f);
-    playerPos.z = clamp(playerPos.z, -159.0f, 159.0f);
-    camera->SetPosition(playerPos);
->>>>>>> bc25f2e8ee54f871a28806d6be0e351443e8dab6
 }
 
 void Game::FlashlightBob(float deltaTime)
@@ -968,7 +840,6 @@ void Game::RenderShadows()
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-<<<<<<< HEAD
 	// Render shadows first
 	RenderShadows();
 
@@ -1130,153 +1001,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		ID3D11ShaderResourceView* nullSRVs[16] = {};
 		context->PSSetShaderResources(0, 16, nullSRVs);
 	}
-=======
-
-
-
-
-    // Render shadows first
-    RenderShadows();
-
-    // Background color (Cornflower Blue in this case) for clearing
-    //const float color[4] = { 0.4f, 0.6f, 0.75f, 0.0f };
-    const float color[4] = { 0.1f, 0.1f, 0.1f, 0.0f };
-
-    // Clear the render target and depth buffer (erases what's on the screen)
-    //  - Do this ONCE PER FRAME
-    //  - At the beginning of Draw (before drawing *anything*)
-    context->ClearRenderTargetView(backBufferRTV, color);
-    context->ClearDepthStencilView(
-        depthStencilView,
-        D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
-        1.0f,
-        0);
-
-    if (gameOver)
-    {
-        GameOver();
-    }
-    else if (youWin)
-    {
-        YouWin();
-    }
-    else
-    {
-        // Set lights in the shader
-        pixelShader->SetData("Lights", (void*)(&lights[0]), sizeof(Light) * MAX_LIGHTS);
-        pixelShader->SetInt("LightCount", lightCount);
-
-
-        
-
-        camera->SendPositionToGPU(pixelShader, "CameraPosition");
-        pixelShader->CopyBufferData("perFrame");
-
-
-        // Set buffers in the input assembler
-        //  - Do this ONCE PER OBJECT you're drawing, since each object might
-        //    have different geometry.
-        UINT stride = sizeof(Vertex);
-        UINT offset = 0;
-
-
-        int drawn = 0;
-        // loop through each mesh
-        for (int i = 0; i < entities.size(); i++) {
-            // prepare the material by setting the matrices and shaders in these order
-            if (!entities[i]->GetDraw() && i > 12) continue;
-            drawn++;
-            entities[i]->SendWorldMatrixToGPU(vertexShader, "world");
-            camera->SendViewMatrixToGPU(vertexShader, "view");
-            camera->SendProjectionMatrixToGPU(vertexShader, "projection");
-            camera->SendPositionToGPU(pixelShader, "CameraPosition");
-            entities[i]->GetMaterial()->PrepareMaterial(shadowViewMatrix, shadowProjectionMatrix, shadowSRV, shadowSampler);
-
-
-            // get a temp variable to access the buffer
-            ID3D11Buffer* vTemp = entities[i]->GetVertexBuffer();
-
-            // set the buffers
-            context->IASetVertexBuffers(0, 1, &vTemp, &stride, &offset);
-            context->IASetIndexBuffer(entities[i]->GetIndexBuffer(), DXGI_FORMAT_R32_UINT, 0);
-
-            // Finally do the actual drawing
-            //  - Do this ONCE PER OBJECT you intend to draw
-            //  - This will use all of the currently set DirectX "stuff" (shaders, buffers, etc)
-            //  - DrawIndexed() uses the currently set INDEX BUFFER to look up corresponding
-            //     vertices in the currently set VERTEX BUFFER
-            context->DrawIndexed(
-                entities[i]->GetIndexCount(),     // The number of indices to use (we could draw a subset if we wanted)
-                0,     // Offset to the first index we want to use
-                0);    // Offset to add to each index when looking up vertices
-        }
-        //printf("Drawn Entities: %i\n", drawn);
-        // === Sky box drawing ======================
-    // Draw the sky AFTER everything else to prevent overdraw
-
-    // Set up sky states
-        context->RSSetState(sky->GetSkyRastState().Get());
-        context->OMSetDepthStencilState(sky->GetSkyDepthState().Get(), 0);
-
-        // Grab the data from the box mesh
-        ID3D11Buffer* skyVB = skyMesh->GetVertexBuffer();
-        ID3D11Buffer* skyIB = skyMesh->GetIndexBuffer();
-
-        // Set buffers in the input assembler
-        context->IASetVertexBuffers(0, 1, &skyVB, &stride, &offset);
-        context->IASetIndexBuffer(skyIB, DXGI_FORMAT_R32_UINT, 0);
-
-        // Set up the new sky shaders
-        skyVS->SetMatrix4x4("view", camera->GetViewMatrix());
-        skyVS->SetMatrix4x4("projection", camera->GetProjectionMatrix());
-
-        skyVS->CopyAllBufferData();
-        skyVS->SetShader();
-
-        skyPS->SetShader();
-        skyPS->SetShaderResourceView("skyTexture", sky->GetSkySRV().Get());
-        skyPS->SetSamplerState("samplerOptions", sky->GetSkySamplerState().Get());
-        float data = 0;
-        if (con.GetValue("GammaSky", &data)) {
-            skyPS->SetFloat("skyGamma", data);
-            skyPS->CopyBufferData("skyGamma");
-        }
-        else {
-            skyPS->SetFloat("skyGamma", 1.0f);
-        }
-        skyPS->CopyAllBufferData();
-
-        // Finally do the actual drawing
-        context->DrawIndexed(skyMesh->GetIndexCount(), 0, 0);
-
-        // Reset states for next frame
-        context->RSSetState(0);
-        context->OMSetDepthStencilState(0, 0);
-
-        //Draw Emitters
-        float blend[4] = { 1,1,1,1 };
-        context->OMSetBlendState(particleBlendState_Slender.Get(), blend, 0xffffffff);
-        context->OMSetDepthStencilState(particleDepthState.Get(), 0);
-
-        emitterPS->CopyAllBufferData();
-        emitter_Slender->Draw(context, camera);
-
-        context->OMSetBlendState(particleBlendState_Campfire.Get(), blend, 0xffffffff);
-        emitter_Campfire->Draw(context, camera);
-
-        // Reset to default states for next frame
-        context->OMSetBlendState(0, blend, 0xffffffff);
-        context->OMSetDepthStencilState(0, 0);
-        context->RSSetState(0);
-
-        DrawAText();
-        // Present the back buffer to the user
-        //  - Puts the final frame we're drawing into the window so the user can see it
-        //  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
-
-    }
->>>>>>> bc25f2e8ee54f871a28806d6be0e351443e8dab6
-
 
 
     swapChain->Present(0, 0);
