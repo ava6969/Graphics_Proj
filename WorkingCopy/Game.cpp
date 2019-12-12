@@ -973,7 +973,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->OMSetDepthStencilState(0, 0);
 		context->RSSetState(0);
 
-		DrawAText();
+		
 		// Present the back buffer to the user
 		//  - Puts the final frame we're drawing into the window so the user can see it
 		//  - Do this exactly ONCE PER FRAME (always at the very end of the frame)
@@ -1009,7 +1009,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		ID3D11ShaderResourceView* nullSRVs[16] = {};
 		context->PSSetShaderResources(0, 16, nullSRVs);
 	}
-
+	DrawAText();
 
     swapChain->Present(0, 0);
 

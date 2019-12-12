@@ -25,9 +25,8 @@ cbuffer perFrame : register(b1)
 
 	int UsePBR;
 
-	float gammaLevel;
 };
-
+float gammaLevel : register(b2);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -71,7 +70,7 @@ float4 main(VertexToPixel input) : SV_TARGET
 	// Sample texture
 	float4 surfaceColor = diffuseTexture.Sample(basicSampler, input.uv);
 	// gamma correct
-	surfaceColor = pow(surfaceColor, 1.04f);
+	surfaceColor = pow(surfaceColor, gammaLevel);
 	// Use normal mapping
 	float3 mapColor = NormalMapping(normalMap, basicSampler, input.uv, input.normal, input.tangent);
 	// Sample the roughness map

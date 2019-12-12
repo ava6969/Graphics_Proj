@@ -12,11 +12,8 @@ struct VertexToPixel
 TextureCube skyTexture		: register(t0);
 SamplerState samplerOptions : register(s0);
 
-cbuffer externalData : register(b0)
-{
-	float skyGamma;
-};
 
+float skyGamma : register(b4);
 // Entry point for this pixel shader
 float4 main(VertexToPixel input) : SV_TARGET
 {
